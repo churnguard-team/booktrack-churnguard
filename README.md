@@ -8,8 +8,9 @@ Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
 
  2-Créer leur fichier .env local à côté de docker-compose.yml avec au minimum:
   POSTGRES_PASSWORD=un_mot_de_passe_local
-3-Démarrer la base
- docker compose up -d
+3-supprimer le volume et Démarrer la base
+ docker compose down -v   # ← supprime le volume ancien (IMPORTANT)
+ docker compose up 
 
 4-Vérifier que le service tourne :
  docker compose ps
