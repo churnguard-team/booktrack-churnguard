@@ -9,3 +9,39 @@ services:
       - "5431:5432"
     volumes:
       - ./bookdatabase.sql:/docker-entrypoint-initdb.d/bookdatabase.sql
+
+  backend:
+    build: ./backend
+    container_name: booktrack_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/bookdatabase
+    volumes:
+      - ./backend:/app        # ← hot reload : tes modifications s'appliquent direct
+    depends_on:
+      - postgres
+    networks:
+      - booktrack_network
+
+  frontend:
+    build: ./frontend
+    container_name: booktrack_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app       # ← hot reload
+      - /app/node_modules     # ← évite d'écraser node_modules
+    depends_on:
+      - backend
+    networks:
+      - booktrack_network
+
+volumes:
+  pg_data:
+
+networks:
+  booktrack_network:
+    driver: bridge

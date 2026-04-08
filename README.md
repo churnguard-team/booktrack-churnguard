@@ -1,7 +1,7 @@
 Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
 
 1-Récupérer le projet
- git clone <url-du-repo>
+ git clone 
  cd booktrack-churnguard
 
  Si le repo est déjà cloné: git pull
@@ -10,7 +10,7 @@ Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
   POSTGRES_PASSWORD=un_mot_de_passe_local
 3-supprimer le volume et Démarrer la base
  docker compose down -v   # ← supprime le volume ancien (IMPORTANT)
- docker compose up 
+ docker compose up -d
 
 4-Vérifier que le service tourne :
  docker compose ps
