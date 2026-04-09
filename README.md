@@ -25,3 +25,8 @@ Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
  docker compose up -d
  
 relancer docker : docker compose up -d --build
+
+note: pour lancer l'app :  docker compose up va lancer les serveurs back et front
+  API racine : http://localhost:8000/
+  API livres : http://localhost:8000/books
+  Front : http://localhost:3000/books
