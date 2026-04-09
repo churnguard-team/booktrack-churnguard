@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict e4fbEI34e6tZ693JF4MFIYdFSx6w8mgOcxMGpf5eQxtGTjCHVczaRdRihaIOToL
+\restrict XppmUPhuXMmX6do7Vs1h1r9ZEWfrSldZH8tEPlcold4tYt9yTZzLL3EUieZAaWQ
 
 -- Dumped from database version 18.3 (Debian 18.3-1.pgdg13+1)
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-04-08 20:00:35
+-- Started on 2026-04-10 00:22:21
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,7 +22,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 3 (class 3079 OID 24609)
+-- TOC entry 2 (class 3079 OID 16385)
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -31,7 +31,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 --
 -- TOC entry 3773 (class 0 OID 0)
--- Dependencies: 3
+-- Dependencies: 2
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -39,7 +39,7 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
--- TOC entry 2 (class 3079 OID 16385)
+-- TOC entry 3 (class 3079 OID 16466)
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -48,7 +48,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 --
 -- TOC entry 3774 (class 0 OID 0)
--- Dependencies: 2
+-- Dependencies: 3
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -56,7 +56,7 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 
 
 --
--- TOC entry 936 (class 1247 OID 24738)
+-- TOC entry 918 (class 1247 OID 16478)
 -- Name: action_status; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -72,7 +72,7 @@ CREATE TYPE public.action_status AS ENUM (
 ALTER TYPE public.action_status OWNER TO postgres;
 
 --
--- TOC entry 933 (class 1247 OID 24728)
+-- TOC entry 921 (class 1247 OID 16490)
 -- Name: action_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -87,7 +87,7 @@ CREATE TYPE public.action_type AS ENUM (
 ALTER TYPE public.action_type OWNER TO postgres;
 
 --
--- TOC entry 942 (class 1247 OID 24760)
+-- TOC entry 924 (class 1247 OID 16500)
 -- Name: admin_role; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -101,7 +101,7 @@ CREATE TYPE public.admin_role AS ENUM (
 ALTER TYPE public.admin_role OWNER TO postgres;
 
 --
--- TOC entry 927 (class 1247 OID 24706)
+-- TOC entry 927 (class 1247 OID 16508)
 -- Name: book_status; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -117,7 +117,7 @@ CREATE TYPE public.book_status AS ENUM (
 ALTER TYPE public.book_status OWNER TO postgres;
 
 --
--- TOC entry 939 (class 1247 OID 24750)
+-- TOC entry 930 (class 1247 OID 16520)
 -- Name: notification_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -132,7 +132,7 @@ CREATE TYPE public.notification_type AS ENUM (
 ALTER TYPE public.notification_type OWNER TO postgres;
 
 --
--- TOC entry 930 (class 1247 OID 24718)
+-- TOC entry 933 (class 1247 OID 16530)
 -- Name: risk_level; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -147,7 +147,7 @@ CREATE TYPE public.risk_level AS ENUM (
 ALTER TYPE public.risk_level OWNER TO postgres;
 
 --
--- TOC entry 924 (class 1247 OID 24696)
+-- TOC entry 936 (class 1247 OID 16540)
 -- Name: subscription_status; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -162,7 +162,7 @@ CREATE TYPE public.subscription_status AS ENUM (
 ALTER TYPE public.subscription_status OWNER TO postgres;
 
 --
--- TOC entry 921 (class 1247 OID 24691)
+-- TOC entry 939 (class 1247 OID 16550)
 -- Name: subscription_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -175,7 +175,7 @@ CREATE TYPE public.subscription_type AS ENUM (
 ALTER TYPE public.subscription_type OWNER TO postgres;
 
 --
--- TOC entry 283 (class 1255 OID 25127)
+-- TOC entry 282 (class 1255 OID 16555)
 -- Name: reset_latest_churn_score(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -195,7 +195,7 @@ $$;
 ALTER FUNCTION public.reset_latest_churn_score() OWNER TO postgres;
 
 --
--- TOC entry 282 (class 1255 OID 25121)
+-- TOC entry 283 (class 1255 OID 16556)
 -- Name: set_updated_at(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -216,7 +216,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 222 (class 1259 OID 24768)
+-- TOC entry 221 (class 1259 OID 16557)
 -- Name: admins; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -236,7 +236,7 @@ CREATE TABLE public.admins (
 ALTER TABLE public.admins OWNER TO postgres;
 
 --
--- TOC entry 223 (class 1259 OID 24791)
+-- TOC entry 222 (class 1259 OID 16576)
 -- Name: books; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -261,7 +261,7 @@ CREATE TABLE public.books (
 ALTER TABLE public.books OWNER TO postgres;
 
 --
--- TOC entry 226 (class 1259 OID 24876)
+-- TOC entry 223 (class 1259 OID 16589)
 -- Name: churn_scores; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -281,7 +281,7 @@ CREATE TABLE public.churn_scores (
 ALTER TABLE public.churn_scores OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1259 OID 25099)
+-- TOC entry 224 (class 1259 OID 16604)
 -- Name: ml_models; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -303,7 +303,7 @@ CREATE TABLE public.ml_models (
 ALTER TABLE public.ml_models OWNER TO postgres;
 
 --
--- TOC entry 229 (class 1259 OID 24958)
+-- TOC entry 225 (class 1259 OID 16617)
 -- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -323,7 +323,7 @@ CREATE TABLE public.notifications (
 ALTER TABLE public.notifications OWNER TO postgres;
 
 --
--- TOC entry 228 (class 1259 OID 24930)
+-- TOC entry 226 (class 1259 OID 16632)
 -- Name: recommendations; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -346,7 +346,7 @@ CREATE TABLE public.recommendations (
 ALTER TABLE public.recommendations OWNER TO postgres;
 
 --
--- TOC entry 227 (class 1259 OID 24902)
+-- TOC entry 227 (class 1259 OID 16644)
 -- Name: retention_actions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -369,7 +369,7 @@ CREATE TABLE public.retention_actions (
 ALTER TABLE public.retention_actions OWNER TO postgres;
 
 --
--- TOC entry 225 (class 1259 OID 24846)
+-- TOC entry 228 (class 1259 OID 16657)
 -- Name: subscriptions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -395,7 +395,7 @@ CREATE TABLE public.subscriptions (
 ALTER TABLE public.subscriptions OWNER TO postgres;
 
 --
--- TOC entry 224 (class 1259 OID 24812)
+-- TOC entry 229 (class 1259 OID 16677)
 -- Name: user_books; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -418,7 +418,7 @@ CREATE TABLE public.user_books (
 ALTER TABLE public.user_books OWNER TO postgres;
 
 --
--- TOC entry 231 (class 1259 OID 24983)
+-- TOC entry 230 (class 1259 OID 16694)
 -- Name: user_events; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -436,7 +436,7 @@ PARTITION BY RANGE (occurred_at);
 ALTER TABLE public.user_events OWNER TO postgres;
 
 --
--- TOC entry 230 (class 1259 OID 24982)
+-- TOC entry 231 (class 1259 OID 16702)
 -- Name: user_events_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -452,7 +452,7 @@ ALTER SEQUENCE public.user_events_id_seq OWNER TO postgres;
 
 --
 -- TOC entry 3775 (class 0 OID 0)
--- Dependencies: 230
+-- Dependencies: 231
 -- Name: user_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -460,7 +460,7 @@ ALTER SEQUENCE public.user_events_id_seq OWNED BY public.user_events.id;
 
 
 --
--- TOC entry 232 (class 1259 OID 25002)
+-- TOC entry 232 (class 1259 OID 16703)
 -- Name: user_events_2025_q1; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -477,7 +477,7 @@ CREATE TABLE public.user_events_2025_q1 (
 ALTER TABLE public.user_events_2025_q1 OWNER TO postgres;
 
 --
--- TOC entry 233 (class 1259 OID 25019)
+-- TOC entry 233 (class 1259 OID 16714)
 -- Name: user_events_2025_q2; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -494,7 +494,7 @@ CREATE TABLE public.user_events_2025_q2 (
 ALTER TABLE public.user_events_2025_q2 OWNER TO postgres;
 
 --
--- TOC entry 234 (class 1259 OID 25036)
+-- TOC entry 234 (class 1259 OID 16725)
 -- Name: user_events_2025_q3; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -511,7 +511,7 @@ CREATE TABLE public.user_events_2025_q3 (
 ALTER TABLE public.user_events_2025_q3 OWNER TO postgres;
 
 --
--- TOC entry 235 (class 1259 OID 25053)
+-- TOC entry 235 (class 1259 OID 16736)
 -- Name: user_events_2025_q4; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -528,7 +528,7 @@ CREATE TABLE public.user_events_2025_q4 (
 ALTER TABLE public.user_events_2025_q4 OWNER TO postgres;
 
 --
--- TOC entry 236 (class 1259 OID 25070)
+-- TOC entry 236 (class 1259 OID 16747)
 -- Name: user_events_2026_q1; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -545,7 +545,7 @@ CREATE TABLE public.user_events_2026_q1 (
 ALTER TABLE public.user_events_2026_q1 OWNER TO postgres;
 
 --
--- TOC entry 221 (class 1259 OID 16396)
+-- TOC entry 237 (class 1259 OID 16758)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -572,7 +572,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 238 (class 1259 OID 25129)
+-- TOC entry 238 (class 1259 OID 16775)
 -- Name: v_abonnes_a_risque; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -596,7 +596,7 @@ CREATE VIEW public.v_abonnes_a_risque AS
 ALTER VIEW public.v_abonnes_a_risque OWNER TO postgres;
 
 --
--- TOC entry 239 (class 1259 OID 25134)
+-- TOC entry 239 (class 1259 OID 16780)
 -- Name: v_stats_lecture; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -616,7 +616,7 @@ CREATE VIEW public.v_stats_lecture AS
 ALTER VIEW public.v_stats_lecture OWNER TO postgres;
 
 --
--- TOC entry 240 (class 1259 OID 25139)
+-- TOC entry 240 (class 1259 OID 16785)
 -- Name: v_taux_churn; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -676,7 +676,7 @@ ALTER TABLE ONLY public.user_events ATTACH PARTITION public.user_events_2026_q1 
 
 
 --
--- TOC entry 3490 (class 2604 OID 24986)
+-- TOC entry 3488 (class 2604 OID 16789)
 -- Name: user_events id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -684,8 +684,8 @@ ALTER TABLE ONLY public.user_events ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 3753 (class 0 OID 24768)
--- Dependencies: 222
+-- TOC entry 3752 (class 0 OID 16557)
+-- Dependencies: 221
 -- Data for Name: admins; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -694,8 +694,8 @@ COPY public.admins (id, email, password_hash, nom, prenom, role, is_active, crea
 
 
 --
--- TOC entry 3754 (class 0 OID 24791)
--- Dependencies: 223
+-- TOC entry 3753 (class 0 OID 16576)
+-- Dependencies: 222
 -- Data for Name: books; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -704,8 +704,8 @@ COPY public.books (id, title, description, auteur, genre, isbn, cover_url, nb_pa
 
 
 --
--- TOC entry 3757 (class 0 OID 24876)
--- Dependencies: 226
+-- TOC entry 3754 (class 0 OID 16589)
+-- Dependencies: 223
 -- Data for Name: churn_scores; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -714,8 +714,8 @@ COPY public.churn_scores (id, user_id, score, niveau_risque, date_calcul, model_
 
 
 --
--- TOC entry 3767 (class 0 OID 25099)
--- Dependencies: 237
+-- TOC entry 3755 (class 0 OID 16604)
+-- Dependencies: 224
 -- Data for Name: ml_models; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -724,8 +724,8 @@ COPY public.ml_models (id, nom, version, algorithme, metriques, parametres, mlfl
 
 
 --
--- TOC entry 3760 (class 0 OID 24958)
--- Dependencies: 229
+-- TOC entry 3756 (class 0 OID 16617)
+-- Dependencies: 225
 -- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -734,8 +734,8 @@ COPY public.notifications (id, user_id, type, titre, contenu, is_read, lu_at, me
 
 
 --
--- TOC entry 3759 (class 0 OID 24930)
--- Dependencies: 228
+-- TOC entry 3757 (class 0 OID 16632)
+-- Dependencies: 226
 -- Data for Name: recommendations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -744,7 +744,7 @@ COPY public.recommendations (id, user_id, book_id, score_pertinence, algorithme,
 
 
 --
--- TOC entry 3758 (class 0 OID 24902)
+-- TOC entry 3758 (class 0 OID 16644)
 -- Dependencies: 227
 -- Data for Name: retention_actions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -754,8 +754,8 @@ COPY public.retention_actions (id, user_id, churn_score_id, type_action, statut,
 
 
 --
--- TOC entry 3756 (class 0 OID 24846)
--- Dependencies: 225
+-- TOC entry 3759 (class 0 OID 16657)
+-- Dependencies: 228
 -- Data for Name: subscriptions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -764,8 +764,8 @@ COPY public.subscriptions (id, user_id, type, status, date_debut, date_fin, stri
 
 
 --
--- TOC entry 3755 (class 0 OID 24812)
--- Dependencies: 224
+-- TOC entry 3760 (class 0 OID 16677)
+-- Dependencies: 229
 -- Data for Name: user_books; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -774,7 +774,7 @@ COPY public.user_books (id, user_id, book_id, statut, note, avis, date_debut, da
 
 
 --
--- TOC entry 3762 (class 0 OID 25002)
+-- TOC entry 3762 (class 0 OID 16703)
 -- Dependencies: 232
 -- Data for Name: user_events_2025_q1; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -784,7 +784,7 @@ COPY public.user_events_2025_q1 (id, user_id, event_type, book_id, metadata, occ
 
 
 --
--- TOC entry 3763 (class 0 OID 25019)
+-- TOC entry 3763 (class 0 OID 16714)
 -- Dependencies: 233
 -- Data for Name: user_events_2025_q2; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -794,7 +794,7 @@ COPY public.user_events_2025_q2 (id, user_id, event_type, book_id, metadata, occ
 
 
 --
--- TOC entry 3764 (class 0 OID 25036)
+-- TOC entry 3764 (class 0 OID 16725)
 -- Dependencies: 234
 -- Data for Name: user_events_2025_q3; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -804,7 +804,7 @@ COPY public.user_events_2025_q3 (id, user_id, event_type, book_id, metadata, occ
 
 
 --
--- TOC entry 3765 (class 0 OID 25053)
+-- TOC entry 3765 (class 0 OID 16736)
 -- Dependencies: 235
 -- Data for Name: user_events_2025_q4; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -814,7 +814,7 @@ COPY public.user_events_2025_q4 (id, user_id, event_type, book_id, metadata, occ
 
 
 --
--- TOC entry 3766 (class 0 OID 25070)
+-- TOC entry 3766 (class 0 OID 16747)
 -- Dependencies: 236
 -- Data for Name: user_events_2026_q1; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -824,8 +824,8 @@ COPY public.user_events_2026_q1 (id, user_id, event_type, book_id, metadata, occ
 
 
 --
--- TOC entry 3752 (class 0 OID 16396)
--- Dependencies: 221
+-- TOC entry 3767 (class 0 OID 16758)
+-- Dependencies: 237
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -835,7 +835,7 @@ COPY public.users (id, email, password_hash, nom, prenom, numero_tele, photo_url
 
 --
 -- TOC entry 3776 (class 0 OID 0)
--- Dependencies: 230
+-- Dependencies: 231
 -- Name: user_events_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -843,7 +843,7 @@ SELECT pg_catalog.setval('public.user_events_id_seq', 1, false);
 
 
 --
--- TOC entry 3514 (class 2606 OID 24790)
+-- TOC entry 3509 (class 2606 OID 16791)
 -- Name: admins admins_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -852,7 +852,7 @@ ALTER TABLE ONLY public.admins
 
 
 --
--- TOC entry 3516 (class 2606 OID 24788)
+-- TOC entry 3511 (class 2606 OID 16793)
 -- Name: admins admins_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -861,7 +861,7 @@ ALTER TABLE ONLY public.admins
 
 
 --
--- TOC entry 3518 (class 2606 OID 24807)
+-- TOC entry 3513 (class 2606 OID 16795)
 -- Name: books books_isbn_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -870,7 +870,7 @@ ALTER TABLE ONLY public.books
 
 
 --
--- TOC entry 3520 (class 2606 OID 24805)
+-- TOC entry 3515 (class 2606 OID 16797)
 -- Name: books books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -879,7 +879,7 @@ ALTER TABLE ONLY public.books
 
 
 --
--- TOC entry 3538 (class 2606 OID 24892)
+-- TOC entry 3521 (class 2606 OID 16799)
 -- Name: churn_scores churn_scores_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -888,7 +888,7 @@ ALTER TABLE ONLY public.churn_scores
 
 
 --
--- TOC entry 3573 (class 2606 OID 25113)
+-- TOC entry 3529 (class 2606 OID 16801)
 -- Name: ml_models ml_models_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -897,7 +897,7 @@ ALTER TABLE ONLY public.ml_models
 
 
 --
--- TOC entry 3557 (class 2606 OID 24974)
+-- TOC entry 3533 (class 2606 OID 16803)
 -- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -906,7 +906,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- TOC entry 3553 (class 2606 OID 24943)
+-- TOC entry 3539 (class 2606 OID 16805)
 -- Name: recommendations recommendations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -915,7 +915,7 @@ ALTER TABLE ONLY public.recommendations
 
 
 --
--- TOC entry 3547 (class 2606 OID 24916)
+-- TOC entry 3544 (class 2606 OID 16807)
 -- Name: retention_actions retention_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -924,7 +924,7 @@ ALTER TABLE ONLY public.retention_actions
 
 
 --
--- TOC entry 3536 (class 2606 OID 24867)
+-- TOC entry 3549 (class 2606 OID 16809)
 -- Name: subscriptions subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -933,7 +933,7 @@ ALTER TABLE ONLY public.subscriptions
 
 
 --
--- TOC entry 3529 (class 2606 OID 24830)
+-- TOC entry 3554 (class 2606 OID 16811)
 -- Name: user_books user_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -942,7 +942,7 @@ ALTER TABLE ONLY public.user_books
 
 
 --
--- TOC entry 3531 (class 2606 OID 24832)
+-- TOC entry 3556 (class 2606 OID 16813)
 -- Name: user_books user_books_user_id_book_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -951,7 +951,7 @@ ALTER TABLE ONLY public.user_books
 
 
 --
--- TOC entry 3510 (class 2606 OID 16414)
+-- TOC entry 3571 (class 2606 OID 16815)
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -960,7 +960,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3512 (class 2606 OID 16416)
+-- TOC entry 3573 (class 2606 OID 16817)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -969,7 +969,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3521 (class 1259 OID 24809)
+-- TOC entry 3516 (class 1259 OID 16818)
 -- Name: idx_books_auteur; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -977,7 +977,7 @@ CREATE INDEX idx_books_auteur ON public.books USING btree (auteur);
 
 
 --
--- TOC entry 3522 (class 1259 OID 24810)
+-- TOC entry 3517 (class 1259 OID 16819)
 -- Name: idx_books_genre; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -985,7 +985,7 @@ CREATE INDEX idx_books_genre ON public.books USING btree (genre);
 
 
 --
--- TOC entry 3523 (class 1259 OID 24811)
+-- TOC entry 3518 (class 1259 OID 16820)
 -- Name: idx_books_isbn; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -993,7 +993,7 @@ CREATE INDEX idx_books_isbn ON public.books USING btree (isbn);
 
 
 --
--- TOC entry 3524 (class 1259 OID 24808)
+-- TOC entry 3519 (class 1259 OID 16821)
 -- Name: idx_books_title_trgm; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1001,7 +1001,7 @@ CREATE INDEX idx_books_title_trgm ON public.books USING gin (title public.gin_tr
 
 
 --
--- TOC entry 3539 (class 1259 OID 24901)
+-- TOC entry 3522 (class 1259 OID 16822)
 -- Name: idx_churn_scores_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1009,7 +1009,7 @@ CREATE INDEX idx_churn_scores_date ON public.churn_scores USING btree (date_calc
 
 
 --
--- TOC entry 3540 (class 1259 OID 24899)
+-- TOC entry 3523 (class 1259 OID 16823)
 -- Name: idx_churn_scores_latest; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1017,7 +1017,7 @@ CREATE INDEX idx_churn_scores_latest ON public.churn_scores USING btree (user_id
 
 
 --
--- TOC entry 3541 (class 1259 OID 24900)
+-- TOC entry 3524 (class 1259 OID 16824)
 -- Name: idx_churn_scores_risque; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1025,7 +1025,7 @@ CREATE INDEX idx_churn_scores_risque ON public.churn_scores USING btree (niveau_
 
 
 --
--- TOC entry 3542 (class 1259 OID 24898)
+-- TOC entry 3525 (class 1259 OID 16825)
 -- Name: idx_churn_scores_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1033,7 +1033,7 @@ CREATE INDEX idx_churn_scores_user ON public.churn_scores USING btree (user_id);
 
 
 --
--- TOC entry 3558 (class 1259 OID 25093)
+-- TOC entry 3557 (class 1259 OID 16826)
 -- Name: idx_events_type; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1041,7 +1041,7 @@ CREATE INDEX idx_events_type ON ONLY public.user_events USING btree (event_type)
 
 
 --
--- TOC entry 3559 (class 1259 OID 25087)
+-- TOC entry 3558 (class 1259 OID 16827)
 -- Name: idx_events_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1049,7 +1049,7 @@ CREATE INDEX idx_events_user ON ONLY public.user_events USING btree (user_id, oc
 
 
 --
--- TOC entry 3570 (class 1259 OID 25119)
+-- TOC entry 3526 (class 1259 OID 16828)
 -- Name: idx_ml_models_nom; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1057,7 +1057,7 @@ CREATE INDEX idx_ml_models_nom ON public.ml_models USING btree (nom);
 
 
 --
--- TOC entry 3571 (class 1259 OID 25120)
+-- TOC entry 3527 (class 1259 OID 16829)
 -- Name: idx_ml_models_production; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1065,7 +1065,7 @@ CREATE INDEX idx_ml_models_production ON public.ml_models USING btree (nom, is_p
 
 
 --
--- TOC entry 3554 (class 1259 OID 24981)
+-- TOC entry 3530 (class 1259 OID 16830)
 -- Name: idx_notifs_is_read; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1073,7 +1073,7 @@ CREATE INDEX idx_notifs_is_read ON public.notifications USING btree (user_id, is
 
 
 --
--- TOC entry 3555 (class 1259 OID 24980)
+-- TOC entry 3531 (class 1259 OID 16831)
 -- Name: idx_notifs_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1081,7 +1081,7 @@ CREATE INDEX idx_notifs_user ON public.notifications USING btree (user_id);
 
 
 --
--- TOC entry 3548 (class 1259 OID 24955)
+-- TOC entry 3534 (class 1259 OID 16832)
 -- Name: idx_reco_book; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1089,7 +1089,7 @@ CREATE INDEX idx_reco_book ON public.recommendations USING btree (book_id);
 
 
 --
--- TOC entry 3549 (class 1259 OID 24957)
+-- TOC entry 3535 (class 1259 OID 16833)
 -- Name: idx_reco_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1097,7 +1097,7 @@ CREATE INDEX idx_reco_date ON public.recommendations USING btree (date_recommand
 
 
 --
--- TOC entry 3550 (class 1259 OID 24956)
+-- TOC entry 3536 (class 1259 OID 16834)
 -- Name: idx_reco_score; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1105,7 +1105,7 @@ CREATE INDEX idx_reco_score ON public.recommendations USING btree (score_pertine
 
 
 --
--- TOC entry 3551 (class 1259 OID 24954)
+-- TOC entry 3537 (class 1259 OID 16835)
 -- Name: idx_reco_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1113,7 +1113,7 @@ CREATE INDEX idx_reco_user ON public.recommendations USING btree (user_id);
 
 
 --
--- TOC entry 3543 (class 1259 OID 24928)
+-- TOC entry 3540 (class 1259 OID 16836)
 -- Name: idx_retention_statut; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1121,7 +1121,7 @@ CREATE INDEX idx_retention_statut ON public.retention_actions USING btree (statu
 
 
 --
--- TOC entry 3544 (class 1259 OID 24929)
+-- TOC entry 3541 (class 1259 OID 16837)
 -- Name: idx_retention_type; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1129,7 +1129,7 @@ CREATE INDEX idx_retention_type ON public.retention_actions USING btree (type_ac
 
 
 --
--- TOC entry 3545 (class 1259 OID 24927)
+-- TOC entry 3542 (class 1259 OID 16838)
 -- Name: idx_retention_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1137,7 +1137,7 @@ CREATE INDEX idx_retention_user ON public.retention_actions USING btree (user_id
 
 
 --
--- TOC entry 3532 (class 1259 OID 24874)
+-- TOC entry 3545 (class 1259 OID 16839)
 -- Name: idx_subscriptions_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1145,7 +1145,7 @@ CREATE INDEX idx_subscriptions_status ON public.subscriptions USING btree (statu
 
 
 --
--- TOC entry 3533 (class 1259 OID 24875)
+-- TOC entry 3546 (class 1259 OID 16840)
 -- Name: idx_subscriptions_stripe; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1153,7 +1153,7 @@ CREATE INDEX idx_subscriptions_stripe ON public.subscriptions USING btree (strip
 
 
 --
--- TOC entry 3534 (class 1259 OID 24873)
+-- TOC entry 3547 (class 1259 OID 16841)
 -- Name: idx_subscriptions_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1161,7 +1161,7 @@ CREATE INDEX idx_subscriptions_user ON public.subscriptions USING btree (user_id
 
 
 --
--- TOC entry 3525 (class 1259 OID 24844)
+-- TOC entry 3550 (class 1259 OID 16842)
 -- Name: idx_user_books_book; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1169,7 +1169,7 @@ CREATE INDEX idx_user_books_book ON public.user_books USING btree (book_id);
 
 
 --
--- TOC entry 3526 (class 1259 OID 24845)
+-- TOC entry 3551 (class 1259 OID 16843)
 -- Name: idx_user_books_statut; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1177,7 +1177,7 @@ CREATE INDEX idx_user_books_statut ON public.user_books USING btree (statut);
 
 
 --
--- TOC entry 3527 (class 1259 OID 24843)
+-- TOC entry 3552 (class 1259 OID 16844)
 -- Name: idx_user_books_user; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1185,7 +1185,7 @@ CREATE INDEX idx_user_books_user ON public.user_books USING btree (user_id);
 
 
 --
--- TOC entry 3508 (class 1259 OID 24767)
+-- TOC entry 3569 (class 1259 OID 16845)
 -- Name: idx_users_email; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1193,7 +1193,7 @@ CREATE INDEX idx_users_email ON public.users USING btree (email);
 
 
 --
--- TOC entry 3560 (class 1259 OID 25094)
+-- TOC entry 3559 (class 1259 OID 16846)
 -- Name: user_events_2025_q1_event_type_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1201,7 +1201,7 @@ CREATE INDEX user_events_2025_q1_event_type_idx ON public.user_events_2025_q1 US
 
 
 --
--- TOC entry 3561 (class 1259 OID 25088)
+-- TOC entry 3560 (class 1259 OID 16847)
 -- Name: user_events_2025_q1_user_id_occurred_at_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1209,7 +1209,7 @@ CREATE INDEX user_events_2025_q1_user_id_occurred_at_idx ON public.user_events_2
 
 
 --
--- TOC entry 3562 (class 1259 OID 25095)
+-- TOC entry 3561 (class 1259 OID 16848)
 -- Name: user_events_2025_q2_event_type_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1217,7 +1217,7 @@ CREATE INDEX user_events_2025_q2_event_type_idx ON public.user_events_2025_q2 US
 
 
 --
--- TOC entry 3563 (class 1259 OID 25089)
+-- TOC entry 3562 (class 1259 OID 16849)
 -- Name: user_events_2025_q2_user_id_occurred_at_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1225,7 +1225,7 @@ CREATE INDEX user_events_2025_q2_user_id_occurred_at_idx ON public.user_events_2
 
 
 --
--- TOC entry 3564 (class 1259 OID 25096)
+-- TOC entry 3563 (class 1259 OID 16850)
 -- Name: user_events_2025_q3_event_type_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1233,7 +1233,7 @@ CREATE INDEX user_events_2025_q3_event_type_idx ON public.user_events_2025_q3 US
 
 
 --
--- TOC entry 3565 (class 1259 OID 25090)
+-- TOC entry 3564 (class 1259 OID 16851)
 -- Name: user_events_2025_q3_user_id_occurred_at_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1241,7 +1241,7 @@ CREATE INDEX user_events_2025_q3_user_id_occurred_at_idx ON public.user_events_2
 
 
 --
--- TOC entry 3566 (class 1259 OID 25097)
+-- TOC entry 3565 (class 1259 OID 16852)
 -- Name: user_events_2025_q4_event_type_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1249,7 +1249,7 @@ CREATE INDEX user_events_2025_q4_event_type_idx ON public.user_events_2025_q4 US
 
 
 --
--- TOC entry 3567 (class 1259 OID 25091)
+-- TOC entry 3566 (class 1259 OID 16853)
 -- Name: user_events_2025_q4_user_id_occurred_at_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1257,7 +1257,7 @@ CREATE INDEX user_events_2025_q4_user_id_occurred_at_idx ON public.user_events_2
 
 
 --
--- TOC entry 3568 (class 1259 OID 25098)
+-- TOC entry 3567 (class 1259 OID 16854)
 -- Name: user_events_2026_q1_event_type_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1265,7 +1265,7 @@ CREATE INDEX user_events_2026_q1_event_type_idx ON public.user_events_2026_q1 US
 
 
 --
--- TOC entry 3569 (class 1259 OID 25092)
+-- TOC entry 3568 (class 1259 OID 16855)
 -- Name: user_events_2026_q1_user_id_occurred_at_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1353,7 +1353,7 @@ ALTER INDEX public.idx_events_user ATTACH PARTITION public.user_events_2026_q1_u
 
 
 --
--- TOC entry 3597 (class 2620 OID 25126)
+-- TOC entry 3596 (class 2620 OID 16856)
 -- Name: admins trg_admins_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1361,7 +1361,7 @@ CREATE TRIGGER trg_admins_updated_at BEFORE UPDATE ON public.admins FOR EACH ROW
 
 
 --
--- TOC entry 3598 (class 2620 OID 25123)
+-- TOC entry 3597 (class 2620 OID 16857)
 -- Name: books trg_books_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1369,7 +1369,7 @@ CREATE TRIGGER trg_books_updated_at BEFORE UPDATE ON public.books FOR EACH ROW E
 
 
 --
--- TOC entry 3601 (class 2620 OID 25128)
+-- TOC entry 3598 (class 2620 OID 16858)
 -- Name: churn_scores trg_churn_score_latest; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1377,7 +1377,7 @@ CREATE TRIGGER trg_churn_score_latest AFTER INSERT OR UPDATE ON public.churn_sco
 
 
 --
--- TOC entry 3600 (class 2620 OID 25125)
+-- TOC entry 3599 (class 2620 OID 16859)
 -- Name: subscriptions trg_subscriptions_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1385,7 +1385,7 @@ CREATE TRIGGER trg_subscriptions_updated_at BEFORE UPDATE ON public.subscription
 
 
 --
--- TOC entry 3599 (class 2620 OID 25124)
+-- TOC entry 3600 (class 2620 OID 16860)
 -- Name: user_books trg_user_books_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1393,7 +1393,7 @@ CREATE TRIGGER trg_user_books_updated_at BEFORE UPDATE ON public.user_books FOR 
 
 
 --
--- TOC entry 3596 (class 2620 OID 25122)
+-- TOC entry 3601 (class 2620 OID 16861)
 -- Name: users trg_users_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1401,7 +1401,7 @@ CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW E
 
 
 --
--- TOC entry 3587 (class 2606 OID 24893)
+-- TOC entry 3584 (class 2606 OID 16862)
 -- Name: churn_scores churn_scores_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1410,7 +1410,7 @@ ALTER TABLE ONLY public.churn_scores
 
 
 --
--- TOC entry 3595 (class 2606 OID 25114)
+-- TOC entry 3585 (class 2606 OID 16867)
 -- Name: ml_models ml_models_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1419,7 +1419,7 @@ ALTER TABLE ONLY public.ml_models
 
 
 --
--- TOC entry 3592 (class 2606 OID 24975)
+-- TOC entry 3586 (class 2606 OID 16872)
 -- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1428,7 +1428,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- TOC entry 3590 (class 2606 OID 24949)
+-- TOC entry 3587 (class 2606 OID 16877)
 -- Name: recommendations recommendations_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1437,7 +1437,7 @@ ALTER TABLE ONLY public.recommendations
 
 
 --
--- TOC entry 3591 (class 2606 OID 24944)
+-- TOC entry 3588 (class 2606 OID 16882)
 -- Name: recommendations recommendations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1446,7 +1446,7 @@ ALTER TABLE ONLY public.recommendations
 
 
 --
--- TOC entry 3588 (class 2606 OID 24922)
+-- TOC entry 3589 (class 2606 OID 16887)
 -- Name: retention_actions retention_actions_churn_score_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1455,7 +1455,7 @@ ALTER TABLE ONLY public.retention_actions
 
 
 --
--- TOC entry 3589 (class 2606 OID 24917)
+-- TOC entry 3590 (class 2606 OID 16892)
 -- Name: retention_actions retention_actions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1464,7 +1464,7 @@ ALTER TABLE ONLY public.retention_actions
 
 
 --
--- TOC entry 3586 (class 2606 OID 24868)
+-- TOC entry 3591 (class 2606 OID 16897)
 -- Name: subscriptions subscriptions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1473,7 +1473,7 @@ ALTER TABLE ONLY public.subscriptions
 
 
 --
--- TOC entry 3584 (class 2606 OID 24838)
+-- TOC entry 3592 (class 2606 OID 16902)
 -- Name: user_books user_books_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1482,7 +1482,7 @@ ALTER TABLE ONLY public.user_books
 
 
 --
--- TOC entry 3585 (class 2606 OID 24833)
+-- TOC entry 3593 (class 2606 OID 16907)
 -- Name: user_books user_books_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1491,7 +1491,7 @@ ALTER TABLE ONLY public.user_books
 
 
 --
--- TOC entry 3593 (class 2606 OID 24997)
+-- TOC entry 3594 (class 2606 OID 16912)
 -- Name: user_events user_events_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1500,7 +1500,7 @@ ALTER TABLE public.user_events
 
 
 --
--- TOC entry 3594 (class 2606 OID 24992)
+-- TOC entry 3595 (class 2606 OID 16932)
 -- Name: user_events user_events_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1508,11 +1508,11 @@ ALTER TABLE public.user_events
     ADD CONSTRAINT user_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
--- Completed on 2026-04-08 20:00:35
+-- Completed on 2026-04-10 00:22:21
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict e4fbEI34e6tZ693JF4MFIYdFSx6w8mgOcxMGpf5eQxtGTjCHVczaRdRihaIOToL
+\unrestrict XppmUPhuXMmX6do7Vs1h1r9ZEWfrSldZH8tEPlcold4tYt9yTZzLL3EUieZAaWQ
 

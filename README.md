@@ -23,3 +23,5 @@ Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
  Si ça bloque chez quelqu’un (ancien conteneur/volume), faire un reset local:
  docker compose down -v --remove-orphans
  docker compose up -d
+ 
+relancer docker : docker compose up -d --build

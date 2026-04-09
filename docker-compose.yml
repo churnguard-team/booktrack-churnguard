@@ -8,7 +8,10 @@ services:
     ports:
       - "5431:5432"
     volumes:
+      - pg_data:/var/lib/postgresql/data
       - ./bookdatabase.sql:/docker-entrypoint-initdb.d/bookdatabase.sql
+    networks:
+      - booktrack_network
 
   backend:
     build: ./backend
@@ -31,9 +34,12 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000      # ← navigateur
+      API_URL: http://backend:8000                    # ← serveur Docker
     volumes:
-      - ./frontend:/app       # ← hot reload
-      - /app/node_modules     # ← évite d'écraser node_modules
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:
