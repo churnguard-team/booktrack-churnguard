@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import books
+from routers import books, users
 
 app = FastAPI(title="BookTrack AI", version="1.0.0")
 
@@ -13,6 +13,7 @@ app.add_middleware(
 )
 
 app.include_router(books.router)
+app.include_router(users.router)
 
 @app.get("/")
 def root():

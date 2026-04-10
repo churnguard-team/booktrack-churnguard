@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Text, Date, TIMESTAMP
+from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 import uuid
@@ -18,3 +18,14 @@ class Book(Base):
     date_publication = Column(Date)
     langue           = Column(String(50))
     created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id             = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email          = Column(String(255), nullable=False)
+    nom            = Column(String(100), nullable=False)
+    prenom         = Column(String(100), nullable=False)
+    is_active      = Column(Boolean, nullable=False, default=True)
+    created_at     = Column(TIMESTAMP(timezone=True), default=datetime.now)

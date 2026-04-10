@@ -3,16 +3,42 @@ from typing import Optional
 from datetime import date, datetime
 import uuid
 
-class BookResponse(BaseModel):
-    id: uuid.UUID
+class BookBase(BaseModel):
     title: str
-    description: Optional[str]
-    auteur: Optional[str]
-    genre: Optional[str]
-    cover_url: Optional[str]
-    nb_pages: Optional[int]
-    date_publication: Optional[date]
-    langue: Optional[str]
+    description: Optional[str] = None
+    auteur: Optional[str] = None
+    genre: Optional[str] = None
+    cover_url: Optional[str] = None
+    nb_pages: Optional[int] = None
+    date_publication: Optional[date] = None
+    langue: Optional[str] = None
+
+class BookCreate(BookBase):
+    pass
+
+class BookResponse(BookBase):
+    id: uuid.UUID
+    created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class UserResponse(BaseModel):
+    id: uuid.UUID
+    email: str
+    nom: str
+    prenom: str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserCreate(BaseModel):
+    email: str
+    nom: str
+    prenom: str
+    is_active: bool = True
+
