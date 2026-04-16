@@ -1,5 +1,7 @@
 import Link from "next/link";
 import DeleteBookButton from "./DeleteBookButton";
+import Navbar from "@/app/components/Navbar";
+import SearchInput from "./SearchInput";
 
 type BookItem = {
   id: string;
@@ -23,17 +25,29 @@ async function getBooks(): Promise<BookItem[]> {
   return res.json();
 }
 
-export default async function BooksPage() {
-  const books = await getBooks();
+
+
+export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  // On attend la lecture de l'URL
+  const params = await searchParams;
+  const recherche = params.q?.toLowerCase() || "";
+  // On récupère tous les livres
+  const allBooks = await getBooks();
+  // On filtre la liste : on garde uniquement les livres où le titre contient notre recherche
+  const filteredBooks = allBooks.filter((book) =>
+    book.title.toLowerCase().includes(recherche)
+  );
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+      <Navbar />
       <h1>Liste des livres</h1>
-      <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1.5rem",alignItems: "center" }}>
         <Link
           href="/admin/books/add"
           style={{
-            display: "inline-block",
+            display: "flex",
+            alignItems: "center",
             padding: "0.55rem 0.9rem",
             border: "1px solid #333",
             borderRadius: "6px",
@@ -46,7 +60,8 @@ export default async function BooksPage() {
         <Link
           href="/admin/users"
           style={{
-            display: "inline-block",
+            display: "flex",
+            alignItems: "center",
             padding: "0.55rem 0.9rem",
             border: "1px solid #333",
             borderRadius: "6px",
@@ -56,7 +71,9 @@ export default async function BooksPage() {
         >
           Gerer les utilisateurs
         </Link>
+        <SearchInput />
       </div>
+
 
       <div
         style={{
@@ -66,7 +83,7 @@ export default async function BooksPage() {
           marginTop: "1rem",
         }}
       >
-        {books.map((book) => (
+        {filteredBooks.map((book) => (
           <div
             key={book.id}
             style={{
@@ -84,7 +101,14 @@ export default async function BooksPage() {
             <p style={{ fontSize: "0.85rem", color: "#999" }}>{book.description}</p>
             <DeleteBookButton bookId={book.id} />
           </div>
+          
         ))}
+         {/* Message si la recherche ne donne rien */}
+          {filteredBooks.length === 0 && (
+            <div style={{ color: "#666", padding: "1rem", backgroundColor: "#fff", border: "1px dashed #ccc", borderRadius: "8px" }}>
+              Aucun livre ne correspond à la recherche "{recherche}".
+            </div>
+          )}
       </div>
     </main>
   );

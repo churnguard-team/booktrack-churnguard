@@ -1,7 +1,7 @@
 Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
 
 1-Récupérer le projet
- git clone 
+ git clone https://github.com/churnguard-team/booktrack-churnguard.git
  cd booktrack-churnguard
 
  Si le repo est déjà cloné: git pull

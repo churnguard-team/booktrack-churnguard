@@ -18,8 +18,26 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=List[BookResponse])
 def get_books(db: Session = Depends(get_db)):
-    books = db.query(Book).all()
+    books = db.query(Book).limit(1000).all()
     return books
+
+@router.put("/{book_id}", response_model=BookResponse)
+def update_book(book_id: UUID, book: BookCreate, db: Session = Depends(get_db)):
+    db_book = db.query(Book).filter(Book.id == book_id).first()
+    if not db_book:
+        raise HTTPException(status_code=404, detail="Livre non trouve")
+    db_book.title = book.title
+    db_book.description = book.description
+    db_book.auteur = book.auteur
+    db_book.genre = book.genre
+    db_book.isbn = book.isbn
+    db_book.cover_url = book.cover_url
+    db_book.nb_pages = book.nb_pages
+    db_book.date_publication = book.date_publication
+    db_book.langue = book.langue
+    db.commit()
+    db.refresh(db_book)
+    return db_book
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_book(book_id: UUID, db: Session = Depends(get_db)):

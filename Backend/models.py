@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from database import Base
 import uuid
 from datetime import datetime
@@ -16,16 +16,73 @@ class Book(Base):
     cover_url        = Column(Text)
     nb_pages         = Column(Integer)
     date_publication = Column(Date)
-    langue           = Column(String(50))
+    langue           = Column(String(50), default="fr")
+    # Colonnes temporelles
     created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id             = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email          = Column(String(255), nullable=False)
-    nom            = Column(String(100), nullable=False)
-    prenom         = Column(String(100), nullable=False)
-    is_active      = Column(Boolean, nullable=False, default=True)
-    created_at     = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email            = Column(String(255), nullable=False, unique=True)
+    password_hash    = Column(Text) # <- Voici le fameux hash de mot de passe !
+    nom              = Column(String(100), nullable=False)
+    prenom           = Column(String(100), nullable=False)
+    numero_tele      = Column(String(20))
+    photo_url        = Column(Text)
+    bio              = Column(Text)
+    genres_preferes  = Column(ARRAY(String)) # <- Configuration spéciale pour les tableaux PostgreSQL
+    objectif_annuel  = Column(Integer, default=12)
+    oauth_provider   = Column(String(50))
+    oauth_id         = Column(String(255))
+    is_active        = Column(Boolean, nullable=False, default=True)
+    
+    # Colonnes temporelles
+    created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
+    last_login_at    = Column(TIMESTAMP(timezone=True))
+
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email            = Column(String(255), nullable=False, unique=True)
+    password_hash    = Column(Text, nullable=False)
+    nom              = Column(String(100), nullable=False)
+    prenom           = Column(String(100), nullable=False)
+    role             = Column(String) # Dans ta BD, c'est l'ENUM "admin_role". SQLAlchemy gère ça très bien en lisant un String.
+    is_active        = Column(Boolean, nullable=False, default=True)
+    
+    # Colonnes temporelles
+    created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
+
+
+
+
+class UserBook(Base):
+    __tablename__ = "user_books"
+
+    # La véritable clé primaire que tu avais créée dans SQL
+    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
+    # Les clés de liaison
+    user_id          = Column(UUID(as_uuid=True), nullable=False)
+    book_id          = Column(UUID(as_uuid=True), nullable=False)
+    
+    # TRADUCTION AUTOMATIQUE (Python -> PostgreSQL)
+    status           = Column("statut", String, default="TO_READ") 
+    rating           = Column("note", Integer)
+    review           = Column("avis", Text)
+    date_started     = Column("date_debut", Date)
+    date_finished    = Column("date_fin", Date)
+    
+    is_favourite     = Column(Boolean, default=False)
+    pages_lues       = Column(Integer, default=0)
+    
+    created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
+

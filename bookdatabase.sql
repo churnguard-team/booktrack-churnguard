@@ -109,8 +109,7 @@ CREATE TYPE public.book_status AS ENUM (
     'TO_READ',
     'READING',
     'READ',
-    'ABANDONED',
-    'FAVOURITE'
+    'ABANDONED'
 );
 
 
@@ -408,6 +407,7 @@ CREATE TABLE public.user_books (
     avis text,
     date_debut date,
     date_fin date,
+    is_favourite boolean DEFAULT false,
     pages_lues integer DEFAULT 0,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,

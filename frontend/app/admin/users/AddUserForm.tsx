@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+
 type UserFormState = {
   email: string;
   nom: string;
   prenom: string;
+  password_hash: string;
   is_active: boolean;
 };
 
@@ -14,6 +16,7 @@ const initialFormState: UserFormState = {
   email: "",
   nom: "",
   prenom: "",
+  password_hash: "",
   is_active: true,
 };
 
@@ -43,6 +46,7 @@ export default function AddUserForm() {
           email: form.email.trim(),
           nom: form.nom.trim(),
           prenom: form.prenom.trim(),
+          password_hash: form.password_hash.trim(),
           is_active: form.is_active,
         }),
       });
@@ -97,6 +101,14 @@ export default function AddUserForm() {
         placeholder="Prenom"
         value={form.prenom}
         onChange={(e) => setForm((prev) => ({ ...prev, prenom: e.target.value }))}
+        style={{ padding: "0.5rem" }}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Mot de passe provisoire"
+        value={form.password_hash}
+        onChange={(e) => setForm((prev) => ({ ...prev, password_hash: e.target.value }))}
         style={{ padding: "0.5rem" }}
         required
       />

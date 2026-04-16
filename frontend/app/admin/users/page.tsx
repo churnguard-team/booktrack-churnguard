@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DeleteUserButton from "./DeleteUserButton";
+import Navbar from "@/app/components/Navbar";
 
 type UserItem = {
   id: string;
@@ -28,6 +29,7 @@ export default async function UsersPage() {
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+      <Navbar />
       <h1>Gestion des utilisateurs</h1>
       <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1rem" }}>
         <Link
