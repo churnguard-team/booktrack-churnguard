@@ -30,3 +30,5 @@ note: pour lancer l'app :  docker compose up va lancer les serveurs back et fron
   API racine : http://localhost:8000/
   API livres : http://localhost:8000/books
   Front : http://localhost:3000/books
+
+  si requirement.txt a changer : docker compose up -d --build backend

@@ -3,8 +3,19 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User, Admin
 from schemas import LoginRequest
+from passlib.context import CryptContext
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Vérifie si le mot de passe correspond au hash bcrypt."""
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        # Fallback : comparaison en clair (pour les comptes de test sans hash)
+        return plain_password == hashed_password
 
 @router.post("/login")
 def login(credentials: LoginRequest, db: Session = Depends(get_db)):
@@ -12,12 +23,11 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     admin = db.query(Admin).filter(Admin.email == credentials.email).first()
     
     if admin:
-        # On vérifie le mot de passe
-        if admin.password_hash == credentials.password:
+        if verify_password(credentials.password, admin.password_hash):
             return {
                 "message": "Connexion réussie",
                 "role": "admin",
-                "user_id": admin.id,
+                "user_id": str(admin.id),
                 "email": admin.email
             }
         else:
@@ -27,11 +37,11 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == credentials.email).first()
     
     if user:
-        if user.password_hash == credentials.password:
+        if verify_password(credentials.password, user.password_hash):
             return {
                 "message": "Connexion réussie",
                 "role": "user",
-                "user_id": user.id,
+                "user_id": str(user.id),
                 "email": user.email
             }
         else:

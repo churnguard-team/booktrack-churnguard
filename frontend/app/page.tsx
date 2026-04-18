@@ -1,103 +1,105 @@
-"use client"; // Indispensable pour utiliser useState dans Next.js App Router
+import Navbar from "@/app/components/Navbar";
+import SearchInput from "@/app/admin/books/SearchInput";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+type BookItem = {
+  id: string;
+  title: string;
+  auteur?: string;
+  genre?: string;
+  description?: string;
+  cover_url?: string;
+};
 
-  // Note le mot-clé "async" qui permet d'attendre la réponse du serveur
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+async function getBooks(): Promise<BookItem[]> {
+  const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-    if (!email || !password) {
-      setError("Veuillez remplir tous les champs.");
-      return;
-    }
+  const res = await fetch(`${apiUrl}/books`, {
+    cache: "no-store",
+  });
 
-    try {
-      // 1. On interroge notre nouvelle route Backend (port 8000)
-      const response = await fetch("http://localhost:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // On envoie un JSON avec tes identifiants (qui correspond au LoginRequest)
-        body: JSON.stringify({ email: email, password: password }),
-      });
+  if (!res.ok) {
+    throw new Error("Erreur lors de la recuperation des livres");
+  }
 
-      // 2. Si le Backend répond OK (200) = Mot de passe correct !
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Succès, réponse du serveur :", data);
-        // On sauvegarde les données (email, role, id) dans la mémoire du navigateur !
-        document.cookie = `user_session=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=86400`;
-        // 3. Magie ! Redirection automatique selon le rôle de la base de données 🚀
-        if (data.role === "admin") {
-          router.push("/admin/books");
-        } else {
-          router.push("/user/books");
-        }
-      }
-      // 4. Si le Backend refuse (mot de passe faux ou email inconnu)
-      else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Identifiants incorrects.");
-      }
-    } catch (err) {
-      setError("Impossible de contacter le serveur. Est-il bien lancé ?");
-      console.error("Erreur serveur :", err);
-    }
-  };
+  return res.json();
+}
 
+export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  // Identité de l'utilisateur
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("user_session");
+  if (!sessionCookie) redirect("/login");
+  const user = JSON.parse(decodeURIComponent(sessionCookie.value));
+
+  const params = await searchParams;
+  const recherche = params.q?.toLowerCase() || "";
+
+  const apiUrl = process.env.API_URL || "http://localhost:8000";
+
+  // On appelle les 2 APIs EN MÊME TEMPS pour aller plus vite !
+  const [allBooksRes, libraryRes] = await Promise.all([
+    fetch(`${apiUrl}/books`, { cache: "no-store" }),
+    fetch(`${apiUrl}/users/${user.user_id}/library`, { cache: "no-store" }),
+  ]);
+
+  const allBooks = allBooksRes.ok ? await allBooksRes.json() : [];
+  const library = libraryRes.ok ? await libraryRes.json() : [];
+
+  // On crée un dictionnaire rapide : { "book_id": { is_favourite: true/false } }
+  const libraryMap = new Map(library.map((ub: { book_id: string; is_favourite: boolean }) => [ub.book_id, ub]));
+
+  // Filtre de recherche
+  const filteredBooks = allBooks.filter((book: { title: string }) =>
+    book.title.toLowerCase().includes(recherche)
+  );
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-md">
+    <main style={{ padding: "2rem", fontFamily: "sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
+      <Navbar />
 
-        <h1 className="text-2xl font-bold text-center text-gray-900">
-          Connexion à BookTrack
-        </h1>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1rem 0" }}>
+        <h1 style={{ color: "#111", marginBottom: "1.5rem" }}>Bibliothèque des Livres</h1>
+        <SearchInput />
 
-        {error && (
-          <p className="text-sm text-red-600 bg-red-100 p-3 rounded">{error}</p>
-        )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
+          {filteredBooks.map((book: BookItem) => {
+            // Pour chaque livre, on vérifie s'il est déjà dans la bibliothèque
+            const userBook = libraryMap.get(book.id);
+            const isInLibrary = !!userBook;
+            const isFavourite = isInLibrary ? (userBook as { is_favourite: boolean }).is_favourite : false;
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Identifiant</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              placeholder="admin"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Se connecter
-          </button>
-          <Link href="/signup">Pas de compte ? S'inscrire</Link>
-        </form>
-
+            return (
+              <div
+                key={book.id}
+                style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "1.5rem", backgroundColor: "#fff", color: "#111", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}
+              >
+                {book.cover_url && (
+                  <img
+                    src={book.cover_url}
+                    alt={book.title}
+                    style={{
+                      width: "100%",
+                      height: "200px",
+                      objectFit: "cover",
+                      borderRadius: "6px",
+                      marginBottom: "0.75rem"
+                    }}
+                  />
+                )}
+                <h3 style={{ margin: "0 0 0.5rem", fontSize: "1.2rem" }}>{book.title}</h3>
+                <p style={{ color: "#555", margin: "0 0 0.25rem", fontWeight: "bold" }}>{book.auteur}</p>
+                <p style={{ color: "#888", margin: "0 0 0.5rem" }}>{book.genre}</p>
+                <p style={{ fontSize: "0.9rem", color: "#666", flexGrow: 1 }}>{book.description}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
+
+
