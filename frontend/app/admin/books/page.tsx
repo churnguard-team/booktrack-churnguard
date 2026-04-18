@@ -29,30 +29,22 @@ export default async function BooksPage() {
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>Liste des livres</h1>
-      <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+        <Link
+          href="/admin/dashboard"
+          style={{ display: "inline-block", padding: "0.55rem 0.9rem", border: "1px solid #4f46e5", borderRadius: "6px", textDecoration: "none", color: "#4f46e5", fontWeight: 600 }}
+        >
+          📊 Dashboard
+        </Link>
         <Link
           href="/admin/books/add"
-          style={{
-            display: "inline-block",
-            padding: "0.55rem 0.9rem",
-            border: "1px solid #333",
-            borderRadius: "6px",
-            textDecoration: "none",
-            color: "#111",
-          }}
+          style={{ display: "inline-block", padding: "0.55rem 0.9rem", border: "1px solid #333", borderRadius: "6px", textDecoration: "none", color: "#111" }}
         >
           Ajouter un livre
         </Link>
         <Link
           href="/admin/users"
-          style={{
-            display: "inline-block",
-            padding: "0.55rem 0.9rem",
-            border: "1px solid #333",
-            borderRadius: "6px",
-            textDecoration: "none",
-            color: "#111",
-          }}
+          style={{ display: "inline-block", padding: "0.55rem 0.9rem", border: "1px solid #333", borderRadius: "6px", textDecoration: "none", color: "#111" }}
         >
           Gerer les utilisateurs
         </Link>
