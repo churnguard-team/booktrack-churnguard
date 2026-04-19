@@ -28,7 +28,8 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
                 "message": "Connexion réussie",
                 "role": "admin",
                 "user_id": str(admin.id),
-                "email": admin.email
+                "email": admin.email,
+                "has_onboarded": True  # Les admins n'ont pas besoin du quiz
             }
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Mot de passe incorrect")
@@ -38,11 +39,17 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     
     if user:
         if verify_password(credentials.password, user.password_hash):
+            # has_onboarded = True si l'utilisateur a déjà rempli ses genres préférés
+            # genres_preferes est un tableau : s'il est vide ou None, c'est un nouvel utilisateur
+            has_onboarded = bool(user.genres_preferes and len(user.genres_preferes) > 0)
             return {
                 "message": "Connexion réussie",
                 "role": "user",
                 "user_id": str(user.id),
-                "email": user.email
+                "email": user.email,
+                "prenom": user.prenom,   # Pour le message de bienvenue
+                "nom": user.nom,
+                "has_onboarded": has_onboarded  # False = nouvel utilisateur → afficher le quiz
             }
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Mot de passe incorrect")

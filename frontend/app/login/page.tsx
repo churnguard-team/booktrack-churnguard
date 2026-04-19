@@ -31,14 +31,17 @@ export default function LoginPage() {
       // 2. Si le Backend répond OK (200) = Mot de passe correct !
       if (response.ok) {
         const data = await response.json();
-        console.log("Succès, réponse du serveur :", data);
-        // On sauvegarde les données (email, role, id) dans la mémoire du navigateur !
+        // On sauvegarde les données de session dans le cookie (24h)
         document.cookie = `user_session=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=86400`;
-        // 3. Magie ! Redirection automatique selon le rôle de la base de données 🚀
+
         if (data.role === "admin") {
           router.push("/admin/books");
+        } else if (!data.has_onboarded) {
+          // Nouvel utilisateur (genres_preferes vide) → quiz d'onboarding !
+          router.push("/onboarding");
         } else {
-          router.push("/user/books");
+          // Utilisateur existant → page d'accueil avec le carousel
+          router.push("/");
         }
       }
       // 4. Si le Backend refuse (mot de passe faux ou email inconnu)
