@@ -57,14 +57,14 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   );
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
+    <main className="min-h-screen bg-gray-50 px-6 py-8">
       <Navbar />
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1rem 0" }}>
-        <h1 style={{ color: "#111", marginBottom: "1.5rem" }}>Bibliothèque des Livres</h1>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">Bibliothèque des Livres</h1>
         <SearchInput />
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {filteredBooks.map((book: BookItem) => {
             // Pour chaque livre, on vérifie s'il est déjà dans la bibliothèque
             const userBook = libraryMap.get(book.id);
@@ -74,20 +74,24 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
             return (
               <div
                 key={book.id}
-                style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "1.5rem", backgroundColor: "#fff", color: "#111", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-md"
               >
                 {book.cover_url && (
-                  <img
-                    src={book.cover_url}
-                    alt={book.title}
-                    style={{
-                      width: "100%",
-                      height: "200px",
-                      objectFit: "cover",
-                      borderRadius: "6px",
-                      marginBottom: "0.75rem"
-                    }}
-                  />
+                  <div className="relative">           {/* ← AJOUTER CE DIV */}
+                    <img
+                      className="w-full h-48 object-cover"
+                      src={book.cover_url}
+                      alt={book.title}
+                    />
+                    {isFavourite && (
+                      <span className="absolute top-2 right-2 text-xl">⭐</span>
+                    )}
+                    {isInLibrary && !isFavourite && (
+                      <span className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold text-emerald-600 shadow">
+                        ✓ Ma biblio
+                      </span>
+                    )}
+                  </div>       
                 )}
                 <h3 style={{ margin: "0 0 0.5rem", fontSize: "1.2rem" }}>{book.title}</h3>
                 <p style={{ color: "#555", margin: "0 0 0.25rem", fontWeight: "bold" }}>{book.auteur}</p>

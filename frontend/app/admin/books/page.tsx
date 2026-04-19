@@ -9,6 +9,7 @@ type BookItem = {
   auteur?: string;
   genre?: string;
   description?: string;
+  cover_url?: string;
 };
 
 async function getBooks(): Promise<BookItem[]> {
@@ -95,6 +96,22 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
+            {book.cover_url ? (
+              <img
+                src={book.cover_url}
+                alt={book.title}
+                loading="lazy"
+                decoding="async"
+                style={{
+                  width: "100%",
+                  height: "160px",
+                  objectFit: "cover",
+                  borderRadius: "8px",
+                  marginBottom: "0.75rem",
+                  border: "1px solid #eee",
+                }}
+              />
+            ) : null}
             <h3 style={{ margin: "0 0 0.5rem" }}>{book.title}</h3>
             <p style={{ color: "#666", margin: "0 0 0.25rem" }}>{book.auteur}</p>
             <p style={{ color: "#888", margin: "0 0 0.25rem" }}>{book.genre}</p>

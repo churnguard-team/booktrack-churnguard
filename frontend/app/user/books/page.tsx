@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import AddToLibraryButton from "./AddToLibraryButton";  
 import { redirect } from "next/navigation"; 
 import FavouriteButton from "./FavouriteButton";
-
+import Link from "next/link";
 
 type BookItem = {
   id: string;
@@ -12,6 +12,7 @@ type BookItem = {
   auteur?: string;
   genre?: string;
   description?: string;
+  cover_url?: string;
 };
 
 async function getBooks(): Promise<BookItem[]> {
@@ -66,35 +67,53 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
         <SearchInput />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-          {filteredBooks.map((book: { id: string; title: string; auteur?: string; genre?: string; description?: string }) => {
+          {filteredBooks.map((book: BookItem) => {
             // Pour chaque livre, on vérifie s'il est déjà dans la bibliothèque
             const userBook = libraryMap.get(book.id);
             const isInLibrary = !!userBook;
             const isFavourite = isInLibrary ? (userBook as { is_favourite: boolean }).is_favourite : false;
 
             return (
-              <div
-                key={book.id}
-                style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "1.5rem", backgroundColor: "#fff", color: "#111", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}
-              >
-                <h3 style={{ margin: "0 0 0.5rem", fontSize: "1.2rem" }}>{book.title}</h3>
-                <p style={{ color: "#555", margin: "0 0 0.25rem", fontWeight: "bold" }}>{book.auteur}</p>
-                <p style={{ color: "#888", margin: "0 0 0.5rem" }}>{book.genre}</p>
-                <p style={{ fontSize: "0.9rem", color: "#666", flexGrow: 1 }}>{book.description}</p>
+              <Link key={book.id} href={`/user/books/${book.id}`}>
+                <div
+                  key={book.id}
+                  style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "1.5rem", backgroundColor: "#fff", color: "#111", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}
+                >
+                  {book.cover_url ? (
+                    <img
+                      src={book.cover_url}
+                      alt={book.title}
+                      loading="lazy"
+                      decoding="async"
+                      style={{
+                        width: "100%",
+                        height: "180px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        marginBottom: "0.75rem",
+                        border: "1px solid #eee",
+                      }}
+                    />
+                  ) : null}
+                  <h3 style={{ margin: "0 0 0.5rem", fontSize: "1.2rem" }}>{book.title}</h3>
+                  <p style={{ color: "#555", margin: "0 0 0.25rem", fontWeight: "bold" }}>{book.auteur}</p>
+                  <p style={{ color: "#888", margin: "0 0 0.5rem" }}>{book.genre}</p>
+                  <p style={{ fontSize: "0.9rem", color: "#666", flexGrow: 1 }}>{book.description}</p>
 
-                <div style={{ marginTop: "1rem" }}>
-                  {isInLibrary ? (
-                    // Le livre est déjà dans la liste : on affiche le bouton ❤️
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span style={{ fontSize: "0.85rem", color: "#16a34a", fontWeight: "bold" }}>✅ Dans ma liste</span>
-                      <FavouriteButton bookId={book.id} userId={user.user_id} isFavourite={isFavourite} />
-                    </div>
-                  ) : (
-                    // Le livre n'est pas encore dans la liste : on affiche "Ajouter"
-                    <AddToLibraryButton bookId={book.id} userId={user.user_id} />
-                  )}
+                  <div style={{ marginTop: "1rem" }}>
+                    {isInLibrary ? (
+                      // Le livre est déjà dans la liste : on affiche le bouton ❤️
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span style={{ fontSize: "0.85rem", color: "#16a34a", fontWeight: "bold" }}>✅ Dans ma liste</span>
+                        <FavouriteButton bookId={book.id} userId={user.user_id} isFavourite={isFavourite} />
+                      </div>
+                    ) : (
+                      // Le livre n'est pas encore dans la liste : on affiche "Ajouter"
+                      <AddToLibraryButton bookId={book.id} userId={user.user_id} />
+                    )}
+                  </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

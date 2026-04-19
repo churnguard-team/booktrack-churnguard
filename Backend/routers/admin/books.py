@@ -21,6 +21,14 @@ def get_books(db: Session = Depends(get_db)):
     books = db.query(Book).limit(1000).all()
     return books
 
+@router.get("/{book_id}", response_model=BookResponse)
+def get_book(book_id: UUID, db: Session = Depends(get_db)):
+    book = db.query(Book).filter(Book.id == book_id).first()
+    if not book:
+        raise HTTPException(status_code=404, detail="Livre non trouvé")
+    return book
+
+
 @router.put("/{book_id}", response_model=BookResponse)
 def update_book(book_id: UUID, book: BookCreate, db: Session = Depends(get_db)):
     db_book = db.query(Book).filter(Book.id == book_id).first()
