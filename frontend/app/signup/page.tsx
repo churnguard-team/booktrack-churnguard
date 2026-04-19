@@ -45,7 +45,7 @@ export default function SignupPage() {
       if (response.ok) {
         console.log("Compte créé avec succès !");
         // Succès ! On renvoie le nouvel utilisateur vers la page de connexion
-        router.push("/");
+        router.push("/login");
       } else {
         const errorData = await response.json();
         setError(errorData.detail || "Erreur lors de la création du compte.");
@@ -130,7 +130,7 @@ export default function SignupPage() {
 
         <p className="text-sm text-center text-gray-600 mt-4 border-t pt-4">
           Déjà un compte ?{" "}
-          <Link href="/" className="text-blue-600 hover:underline font-bold">
+          <Link href="/login" className="text-blue-600 hover:underline font-bold">
             Se connecter
           </Link>
         </p>

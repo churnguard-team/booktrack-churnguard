@@ -3,8 +3,19 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User, Admin
 from schemas import LoginRequest
+from passlib.context import CryptContext
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Vérifie si le mot de passe correspond au hash bcrypt."""
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        # Fallback : comparaison en clair (pour les comptes de test sans hash)
+        return plain_password == hashed_password
 
 @router.post("/login")
 def login(credentials: LoginRequest, db: Session = Depends(get_db)):
@@ -12,13 +23,13 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     admin = db.query(Admin).filter(Admin.email == credentials.email).first()
     
     if admin:
-        # On vérifie le mot de passe
-        if admin.password_hash == credentials.password:
+        if verify_password(credentials.password, admin.password_hash):
             return {
                 "message": "Connexion réussie",
                 "role": "admin",
-                "user_id": admin.id,
-                "email": admin.email
+                "user_id": str(admin.id),
+                "email": admin.email,
+                "has_onboarded": True  # Les admins n'ont pas besoin du quiz
             }
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Mot de passe incorrect")
@@ -27,12 +38,18 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == credentials.email).first()
     
     if user:
-        if user.password_hash == credentials.password:
+        if verify_password(credentials.password, user.password_hash):
+            # has_onboarded = True si l'utilisateur a déjà rempli ses genres préférés
+            # genres_preferes est un tableau : s'il est vide ou None, c'est un nouvel utilisateur
+            has_onboarded = bool(user.genres_preferes and len(user.genres_preferes) > 0)
             return {
                 "message": "Connexion réussie",
                 "role": "user",
-                "user_id": user.id,
-                "email": user.email
+                "user_id": str(user.id),
+                "email": user.email,
+                "prenom": user.prenom,   # Pour le message de bienvenue
+                "nom": user.nom,
+                "has_onboarded": has_onboarded  # False = nouvel utilisateur → afficher le quiz
             }
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Mot de passe incorrect")

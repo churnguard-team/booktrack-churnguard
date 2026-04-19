@@ -15,23 +15,20 @@ export default function SearchInput() {
     } else {
       params.delete("q");
     }
-    // "replace" modifie l'URL de manière invisible sans rechargement lourd !
+    // "replace" modifie l'URL sans rechargement lourd
     router.replace(`${pathname}?${params.toString()}`);
   };
 
   return (
     <input
       type="text"
-      placeholder="Entrez un titre pour filtrer instantanément..."
+      placeholder="Rechercher un livre..."
       defaultValue={searchParams.get("q")?.toString() || ""}
       onChange={(e) => handleSearch(e.target.value)}
-      // J'ai repris tes jolis styles d'avant
-      style={{ 
-        padding: "0.8rem", width: "400px", borderRadius: "6px",
-        marginTop: "0.75rem",
-        marginBottom: "1.5rem",
-        border: "1px solid #ccc", fontSize: "1rem" 
-      }}
+      className="w-full max-w-sm px-4 py-2 text-sm text-gray-700 bg-gray-100
+                 rounded-full border border-transparent
+                 focus:outline-none focus:bg-white focus:border-gray-300
+                 transition-all duration-200 placeholder:text-gray-400"
     />
   );
 }

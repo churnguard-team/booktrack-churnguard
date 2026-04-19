@@ -1,103 +1,218 @@
-"use client"; // Indispensable pour utiliser useState dans Next.js App Router
+// ============================================================
+// page.tsx — Page d'accueil (Server Component)
+// C'est un Server Component : il peut faire des fetch() directement
+// sans useEffect. Next.js s'occupe du rendu côté serveur.
+// ============================================================
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Navbar from "@/app/components/Navbar";
+import BookCarousel from "@/app/components/BookCarousel";
 import Link from "next/link";
+import { cookies } from "next/headers";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+// Définition du type d'un livre (correspond au schéma BookResponse du backend)
+type BookItem = {
+  id: string;
+  title: string;
+  auteur?: string;
+  genre?: string;
+  description?: string;
+  cover_url?: string;
+};
 
-  // Note le mot-clé "async" qui permet d'attendre la réponse du serveur
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  // ===== 1. SESSION (optionnelle — la page est publique) =====
+  // La page d'accueil est accessible sans connexion.
+  // Si le cookie existe, on personalise l'affichage (prénom, bibliothèque).
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("user_session");
+  const user = sessionCookie
+    ? JSON.parse(decodeURIComponent(sessionCookie.value))
+    : null; // null = visiteur non connecté
 
-    if (!email || !password) {
-      setError("Veuillez remplir tous les champs.");
-      return;
-    }
+  // ===== 2. PARAMÈTRES DE RECHERCHE =====
+  const params = await searchParams;
+  const recherche = params.q?.toLowerCase() || "";
 
-    try {
-      // 1. On interroge notre nouvelle route Backend (port 8000)
-      const response = await fetch("http://localhost:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // On envoie un JSON avec tes identifiants (qui correspond au LoginRequest)
-        body: JSON.stringify({ email: email, password: password }),
-      });
+  const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-      // 2. Si le Backend répond OK (200) = Mot de passe correct !
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Succès, réponse du serveur :", data);
-        // On sauvegarde les données (email, role, id) dans la mémoire du navigateur !
-        document.cookie = `user_session=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=86400`;
-        // 3. Magie ! Redirection automatique selon le rôle de la base de données 🚀
-        if (data.role === "admin") {
-          router.push("/admin/books");
-        } else {
-          router.push("/user/books");
-        }
-      }
-      // 4. Si le Backend refuse (mot de passe faux ou email inconnu)
-      else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Identifiants incorrects.");
-      }
-    } catch (err) {
-      setError("Impossible de contacter le serveur. Est-il bien lancé ?");
-      console.error("Erreur serveur :", err);
-    }
-  };
+  // ===== 3. APPELS API EN PARALLÈLE =====
+  const [allBooksRes, libraryRes, trendingRes] = await Promise.all([
+    fetch(`${apiUrl}/books`, { cache: "no-store" }),
+    // On ne récupère la bibliothèque que si l'utilisateur est connecté
+    user
+      ? fetch(`${apiUrl}/users/${user.user_id}/library`, { cache: "no-store" })
+      : Promise.resolve(new Response("[]")),
+    fetch(`${apiUrl}/books/trending`, { cache: "no-store" }),
+  ]);
 
+  const allBooks: BookItem[]      = allBooksRes.ok  ? await allBooksRes.json()  : [];
+  const library                   = libraryRes.ok   ? await libraryRes.json()   : [];
+  const trendingBooks: BookItem[] = trendingRes.ok  ? await trendingRes.json()  : [];
+
+  // ===== 4. DICTIONNAIRE RAPIDE DE LA BIBLIOTHÈQUE =====
+  // On transforme le tableau en Map pour chercher en O(1) plutôt qu'en O(n)
+  // Format : { "book-uuid" → { is_favourite: true/false } }
+  const libraryMap = new Map(
+    library.map((ub: { book_id: string; is_favourite: boolean }) => [ub.book_id, ub])
+  );
+
+  // ===== 5. FILTRE DE RECHERCHE =====
+  // On filtre les livres selon le terme entré dans la SearchInput
+  const filteredBooks = allBooks.filter((book) =>
+    book.title.toLowerCase().includes(recherche)
+  );
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-md">
+    <main className="min-h-screen bg-gray-50">
 
-        <h1 className="text-2xl font-bold text-center text-gray-900">
-          Connexion à BookTrack
-        </h1>
+      {/* ===== BARRE DE NAVIGATION ===== */}
+      <Navbar />
 
-        {error && (
-          <p className="text-sm text-red-600 bg-red-100 p-3 rounded">{error}</p>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+
+        
+
+        {/* ===== SECTION CAROUSEL : TENDANCES ===== */}
+        {/* On affiche cette section SEULEMENT si l'API a retourné des livres */}
+        {trendingBooks.length > 0 && !recherche && (
+          <section className="mb-12">
+
+            {/* En-tête de la section */}
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">🔥 Tendances cette semaine</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Les livres les plus populaires</p>
+              </div>
+            </div>
+
+            {/* 
+              BookCarousel est un "Client Component" (voir BookCarousel.tsx)
+              On lui passe les livres tendance en props depuis le serveur.
+              C'est le pattern "Server → Client" : le serveur fetch les données,
+              le client gère l'interactivité.
+            */}
+            <BookCarousel books={trendingBooks} />
+          </section>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Identifiant</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              placeholder="admin"
-            />
+        {/* ===== SÉPARATEUR ===== */}
+        <div className="border-t border-gray-200 mb-8" />
+
+        {/* ===== SECTION CATALOGUE COMPLET ===== */}
+        <section>
+
+          {/* En-tête du catalogue avec compteur et barre de recherche */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">📚 Tous les livres</h2>
+              {/* Compteur dynamique */}
+              <p className="text-sm text-gray-400 mt-0.5">
+                {recherche
+                  ? `${filteredBooks.length} résultat(s) pour "${recherche}"`
+                  : `${allBooks.length} livres disponibles`}
+              </p>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              placeholder="••••••••"
-            />
+          {/* ===== GRILLE DES LIVRES ===== */}
+          {/* 
+            Responsive : 
+            - 1 colonne sur mobile
+            - 2 colonnes sur tablette (sm)  
+            - 3 colonnes sur laptop (lg)
+            - 4 colonnes sur grand écran (xl)
+          */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+            {filteredBooks.map((book: BookItem) => {
+              // Pour chaque livre : est-il dans ma bibliothèque ? Est-il favori ?
+              const userBook   = libraryMap.get(book.id);
+              const isInLibrary = !!userBook;
+              const isFavourite = isInLibrary
+                ? (userBook as { is_favourite: boolean }).is_favourite
+                : false;
+
+              return (
+                // Chaque carte est un lien cliquable vers la page de détail
+                // hover:-translate-y-1 = légère élévation au survol (effet premium)
+                <Link
+                  key={book.id}
+                  href={`/user/books/${book.id}`}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 
+                             flex flex-col overflow-hidden 
+                             transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+                >
+                  {/* ===== IMAGE DE COUVERTURE ===== */}
+                  {/* "relative" permet de positionner les badges en "absolute" dessus */}
+                  <div className="relative">
+                    {book.cover_url ? (
+                      <img
+                        src={book.cover_url}
+                        alt={book.title}
+                        className="w-full h-52 object-cover"
+                      />
+                    ) : (
+                      // Placeholder dégradé si pas de couverture
+                      <div className="w-full h-52 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                        <span className="text-5xl">📖</span>
+                      </div>
+                    )}
+
+                    {/* BADGE FAVORI ⭐ — visible si le livre est en favori */}
+                    {isFavourite && (
+                      <span className="absolute top-2 right-2 text-xl drop-shadow">⭐</span>
+                    )}
+
+                    {/* BADGE "MA BIBLIO" — visible si dans la biblio mais pas favori */}
+                    {isInLibrary && !isFavourite && (
+                      <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm 
+                                       rounded-full px-2 py-0.5 text-xs font-semibold 
+                                       text-emerald-600 shadow-sm">
+                        ✓ Ma biblio
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ===== INFORMATIONS DU LIVRE ===== */}
+                  <div className="p-4 flex flex-col flex-grow">
+
+                    {/* Titre — max 2 lignes */}
+                    <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">
+                      {book.title}
+                    </h3>
+
+                    {/* Auteur */}
+                    <p className="text-sm font-medium text-gray-500 mb-2">{book.auteur}</p>
+
+                    {/* Badge genre (si disponible) */}
+                    {book.genre && (
+                      <span className="inline-block bg-gray-100 text-gray-500 text-xs 
+                                       px-2 py-0.5 rounded-full w-fit mb-2">
+                        {book.genre}
+                      </span>
+                    )}
+
+                    {/* Description courte — max 2 lignes, poussée en bas grâce à mt-auto */}
+                    <p className="text-xs text-gray-400 line-clamp-2 mt-auto leading-relaxed">
+                      {book.description}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
 
-          <button
-            type="submit"
-            className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Se connecter
-          </button>
-          <Link href="/signup">Pas de compte ? S'inscrire</Link>
-        </form>
+          {/* ===== MESSAGE SI AUCUN RÉSULTAT ===== */}
+          {filteredBooks.length === 0 && (
+            <div className="text-center py-20 text-gray-400">
+              <p className="text-5xl mb-4">🔍</p>
+              <p className="text-lg font-medium">Aucun livre trouvé</p>
+              <p className="text-sm mt-1">Essayez un autre terme de recherche</p>
+            </div>
+          )}
 
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

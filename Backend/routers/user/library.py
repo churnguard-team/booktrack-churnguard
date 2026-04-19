@@ -30,7 +30,15 @@ def add_book_to_library(user_id: uuid.UUID, user_book: UserBookCreate, db: Sessi
     db.add(new_entry)
     db.commit()
     db.refresh(new_entry)
-    return {"message": "Livre ajouté avec succès", "data": new_entry}
+    return {
+    "message": "Livre ajouté avec succès",
+    "data": {
+        "id": str(new_entry.id),
+        "book_id": str(new_entry.book_id),
+        "status": new_entry.status,
+        "is_favourite": new_entry.is_favourite
+    }
+}
 
 
 @router.get("/")
@@ -68,4 +76,11 @@ def update_user_book(user_id: uuid.UUID, book_id: uuid.UUID, update_data: UserBo
         
     db.commit()
     db.refresh(user_book)
-    return {"message": "Mise à jour réussie", "data": user_book}
+    return {
+    "message": "Mise à jour réussie",
+    "data": {
+        "id": str(user_book.id),
+        "status": user_book.status,
+        "is_favourite": user_book.is_favourite
+    }
+}
