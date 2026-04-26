@@ -89,7 +89,8 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
               <p className="text-sm text-gray-400 mt-0.5">Aperçu des livres les plus consultés</p>
             </div>
             {/* BookCarousel est un Client Component (voir BookCarousel.tsx) */}
-            <BookCarousel books={trendingBooks} />
+            {/* basePath="/admin/books" → les liens pointent vers la page admin, pas user */}
+            <BookCarousel books={trendingBooks} basePath="/admin/books" />
           </section>
         )}
 
@@ -117,55 +118,61 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
                            flex flex-col overflow-hidden
                            transition-all duration-300 hover:shadow-md"
               >
-                {/* COUVERTURE */}
-                {book.cover_url ? (
-                  <img
-                    src={book.cover_url}
-                    alt={book.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <span className="text-4xl">📖</span>
-                  </div>
-                )}
+                {/* PARTIE CLIQUABLE : couverture + titre + auteur + genre + description
+                    Tout ce bloc redirige vers la page de détail admin du livre */}
+                <Link href={`/admin/books/${book.id}`} className="flex flex-col flex-grow">
 
-                {/* INFOS */}
-                <div className="p-4 flex flex-col flex-grow">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">
-                    {book.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-1">{book.auteur}</p>
-
-                  {book.genre && (
-                    <span className="inline-block bg-gray-100 text-gray-500 text-xs
-                                     px-2 py-0.5 rounded-full w-fit mb-2">
-                      {book.genre}
-                    </span>
+                  {/* COUVERTURE */}
+                  {book.cover_url ? (
+                    <img
+                      src={book.cover_url}
+                      alt={book.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-48 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <span className="text-4xl">📖</span>
+                    </div>
                   )}
 
-                  <p className="text-xs text-gray-400 line-clamp-2 mt-auto leading-relaxed mb-3">
-                    {book.description}
-                  </p>
+                  {/* INFOS */}
+                  <div className="p-4 flex flex-col flex-grow">
+                    {/* Titre — passe en indigo au hover pour indiquer que c'est cliquable */}
+                    <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug mb-1 group-hover:text-indigo-600 transition-colors">
+                      {book.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-1">{book.auteur}</p>
 
-                  {/* BOUTONS : Modifier + Supprimer */}
-                  <div className="flex gap-2 mt-auto">
-                    {/* Bouton Modifier → style outline (sans fond noir) */}
-                    <Link
-                      href={`/admin/books/${book.id}/edit`}
-                      className="flex-1 text-center text-sm font-medium py-2 px-3
-                                 border border-gray-300 text-gray-700 rounded-lg
-                                 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200"
-                    >
-                      ✏️ Modifier
-                    </Link>
+                    {book.genre && (
+                      <span className="inline-block bg-gray-100 text-gray-500 text-xs
+                                       px-2 py-0.5 rounded-full w-fit mb-2">
+                        {book.genre}
+                      </span>
+                    )}
 
-                    {/* Bouton Supprimer (Client Component existant) */}
-                    <div className="flex-1">
-                      <DeleteBookButton bookId={book.id} />
-                    </div>
+                    <p className="text-xs text-gray-400 line-clamp-2 mt-auto leading-relaxed">
+                      {book.description}
+                    </p>
+                  </div>
+                </Link>
+
+                {/* BOUTONS : Modifier + Supprimer — en dehors du lien pour éviter les conflits */}
+                <div className="flex gap-2 px-4 pb-4">
+                  {/* Bouton Modifier → va vers la page d'édition */}
+                  <Link
+                    href={`/admin/books/${book.id}/edit`}
+                    className="flex-1 text-center text-sm font-medium py-2 px-3
+                               border border-gray-300 text-gray-700 rounded-lg
+                               hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200"
+                  >
+                    ✏️ Modifier
+                  </Link>
+
+                  {/* Bouton Supprimer (Client Component existant) */}
+                  <div className="flex-1">
+                    <DeleteBookButton bookId={book.id} />
                   </div>
                 </div>
               </div>

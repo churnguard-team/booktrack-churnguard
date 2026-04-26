@@ -22,7 +22,7 @@ export default async function ProfilPage() {
       <div style={{ maxWidth: "600px", margin: "3rem auto", padding: "2.5rem", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2rem", borderBottom: "1px solid #eee", paddingBottom: "1.5rem" }}>
             <div style={{ width: "80px", height: "80px", backgroundColor: "#111", color: "white", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", fontWeight: "bold" }}>
-                {user.email.charAt(0).toUpperCase()}
+                {user?.email ? user.email.charAt(0).toUpperCase() : "?"}
             </div>
             <div>
                 <h1 style={{ color: "#111", margin: "0" }}>Mon Profil</h1>

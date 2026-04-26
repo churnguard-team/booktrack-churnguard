@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP
+from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from database import Base
 import uuid
@@ -86,3 +86,22 @@ class UserBook(Base):
     created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
     updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
 
+
+class BookComment(Base):
+    """Modèle pour les commentaires publics laissés par les utilisateurs sur les livres."""
+    __tablename__ = "book_comments"
+
+    # Identifiant unique du commentaire (UUID généré automatiquement)
+    id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    # Référence vers le livre commenté (suppression en cascade si le livre est supprimé)
+    book_id    = Column(UUID(as_uuid=True), ForeignKey("books.id", ondelete="CASCADE"), nullable=False)
+
+    # Référence vers l'utilisateur qui a écrit le commentaire
+    user_id    = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    # Le texte du commentaire
+    contenu    = Column(Text, nullable=False)
+
+    # Date de création du commentaire (remplie automatiquement)
+    created_at = Column(TIMESTAMP(timezone=True), default=datetime.now)
