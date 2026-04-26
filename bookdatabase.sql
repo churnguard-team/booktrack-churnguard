@@ -175,6 +175,56 @@ CREATE TYPE public.subscription_type AS ENUM (
 ALTER TYPE public.subscription_type OWNER TO postgres;
 
 --
+-- TOC entry 940 (class 1247 OID 16560)
+-- Name: report_reason; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.report_reason AS ENUM (
+    'SPAM',
+    'INAPPROPRIATE_CONTENT',
+    'ABUSIVE_BEHAVIOR',
+    'FAKE_PROFILE',
+    'COPYRIGHT_VIOLATION',
+    'OTHER'
+);
+
+
+ALTER TYPE public.report_reason OWNER TO postgres;
+
+--
+-- TOC entry 941 (class 1247 OID 16570)
+-- Name: report_status; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.report_status AS ENUM (
+    'PENDING',
+    'INVESTIGATING',
+    'RESOLVED',
+    'DISMISSED',
+    'ESCALATED'
+);
+
+
+ALTER TYPE public.report_status OWNER TO postgres;
+
+--
+-- TOC entry 942 (class 1247 OID 16580)
+-- Name: moderation_action_type; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.moderation_action_type AS ENUM (
+    'WARNING',
+    'TEMPORARY_BAN',
+    'PERMANENT_BAN',
+    'CONTENT_REMOVAL',
+    'ACCOUNT_RESTRICTION',
+    'NONE'
+);
+
+
+ALTER TYPE public.moderation_action_type OWNER TO postgres;
+
+--
 -- TOC entry 282 (class 1255 OID 16555)
 -- Name: reset_latest_churn_score(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -210,6 +260,25 @@ $$;
 
 
 ALTER FUNCTION public.set_updated_at() OWNER TO postgres;
+
+--
+-- TOC entry 284 (class 1255 OID 16557)
+-- Name: update_user_activity(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_user_activity() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    UPDATE user_activity 
+    SET last_activity_at = NOW()
+    WHERE user_id = NEW.user_id;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_user_activity() OWNER TO postgres;
 
 SET default_tablespace = '';
 
@@ -572,7 +641,104 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 238 (class 1259 OID 16775)
+-- TOC entry 241 (class 1259 OID 16769)
+-- Name: user_activity; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.user_activity (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    total_books_read integer DEFAULT 0,
+    total_pages_read integer DEFAULT 0,
+    avg_rating numeric(3,2) DEFAULT 0.00,
+    last_activity_at timestamp with time zone DEFAULT now() NOT NULL,
+    days_inactive integer DEFAULT 0,
+    engagement_score numeric(5,2) DEFAULT 0.00,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.user_activity OWNER TO postgres;
+
+--
+-- TOC entry 242 (class 1259 OID 16782)
+-- Name: user_reports; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.user_reports (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    reporter_id uuid NOT NULL,
+    reported_user_id uuid NOT NULL,
+    reason public.report_reason NOT NULL,
+    description text,
+    status public.report_status DEFAULT 'PENDING'::public.report_status NOT NULL,
+    evidence_urls text[],
+    moderator_id uuid,
+    moderator_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    resolved_at timestamp with time zone
+);
+
+
+ALTER TABLE public.user_reports OWNER TO postgres;
+
+--
+-- TOC entry 243 (class 1259 OID 16797)
+-- Name: moderation_actions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.moderation_actions (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    action_type public.moderation_action_type NOT NULL,
+    reason text,
+    description text,
+    moderator_id uuid NOT NULL,
+    applied_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.moderation_actions OWNER TO postgres;
+
+--
+-- TOC entry 244 (class 1259 OID 16812)
+-- Name: v_user_details; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.v_user_details AS
+ SELECT u.id,
+    u.email,
+    u.nom,
+    u.prenom,
+    u.is_active,
+    u.created_at,
+    u.last_login_at,
+    ua.total_books_read,
+    ua.total_pages_read,
+    ua.avg_rating,
+    ua.last_activity_at,
+    ua.engagement_score,
+    s.type AS subscription_type,
+    s.status AS subscription_status,
+    COUNT(ur.id) FILTER (WHERE ur.status = 'PENDING'::public.report_status) AS pending_reports,
+    COUNT(ur.id) FILTER (WHERE ur.status IN ('INVESTIGATING'::public.report_status, 'ESCALATED'::public.report_status)) AS active_investigations
+   FROM ((public.users u
+     LEFT JOIN public.user_activity ua ON ((ua.user_id = u.id)))
+     LEFT JOIN public.subscriptions s ON (((s.user_id = u.id) AND (s.status = 'ACTIVE'::public.subscription_status))))
+     LEFT JOIN public.user_reports ur ON ((ur.reported_user_id = u.id))
+  GROUP BY u.id, u.email, u.nom, u.prenom, u.is_active, u.created_at, u.last_login_at, ua.id, ua.total_books_read, ua.total_pages_read, ua.avg_rating, ua.last_activity_at, ua.engagement_score, s.type, s.status;
+
+
+ALTER VIEW public.v_user_details OWNER TO postgres;
+
+--
+-- TOC entry 245 (class 1259 OID 16820)
 -- Name: v_abonnes_a_risque; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -596,7 +762,7 @@ CREATE VIEW public.v_abonnes_a_risque AS
 ALTER VIEW public.v_abonnes_a_risque OWNER TO postgres;
 
 --
--- TOC entry 239 (class 1259 OID 16780)
+-- TOC entry 246 (class 1259 OID 16830)
 -- Name: v_stats_lecture; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -616,7 +782,7 @@ CREATE VIEW public.v_stats_lecture AS
 ALTER VIEW public.v_stats_lecture OWNER TO postgres;
 
 --
--- TOC entry 240 (class 1259 OID 16785)
+-- TOC entry 247 (class 1259 OID 16838)
 -- Name: v_taux_churn; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -843,6 +1009,42 @@ SELECT pg_catalog.setval('public.user_events_id_seq', 1, false);
 
 
 --
+-- TOC entry 3520 (class 2606 OID 16846)
+-- Name: user_activity user_activity_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.user_activity
+    ADD CONSTRAINT user_activity_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3521 (class 2606 OID 16848)
+-- Name: user_activity user_activity_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.user_activity
+    ADD CONSTRAINT user_activity_user_id_key UNIQUE (user_id);
+
+
+--
+-- TOC entry 3522 (class 2606 OID 16850)
+-- Name: user_reports user_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.user_reports
+    ADD CONSTRAINT user_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3523 (class 2606 OID 16852)
+-- Name: moderation_actions moderation_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.moderation_actions
+    ADD CONSTRAINT moderation_actions_pkey PRIMARY KEY (id);
+
+
+--
 -- TOC entry 3509 (class 2606 OID 16791)
 -- Name: admins admins_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
@@ -978,6 +1180,46 @@ CREATE INDEX idx_books_auteur ON public.books USING btree (auteur);
 
 --
 -- TOC entry 3517 (class 1259 OID 16819)
+-- Name: idx_user_activity_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_user_activity_user ON public.user_activity USING btree (user_id);
+
+
+--
+-- TOC entry 3518 (class 1259 OID 16820)
+-- Name: idx_user_reports_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_user_reports_status ON public.user_reports USING btree (status);
+
+
+--
+-- TOC entry 3519 (class 1259 OID 16821)
+-- Name: idx_user_reports_reported_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_user_reports_reported_user ON public.user_reports USING btree (reported_user_id);
+
+
+--
+-- TOC entry 3520 (class 1259 OID 16822)
+-- Name: idx_moderation_actions_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_moderation_actions_user ON public.moderation_actions USING btree (user_id);
+
+
+--
+-- TOC entry 3521 (class 1259 OID 16823)
+-- Name: idx_moderation_actions_active; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_moderation_actions_active ON public.moderation_actions USING btree (user_id, is_active) WHERE is_active = true;
+
+
+--
+-- TOC entry 3522 (class 1259 OID 16824)
 -- Name: idx_books_genre; Type: INDEX; Schema: public; Owner: postgres
 --
 
