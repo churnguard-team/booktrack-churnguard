@@ -1,0 +1,34 @@
+{
+  "navbar": {
+    "recently_added": "أضيف حديثا",
+    "novels": "روايات",
+    "science_fiction": "خيال علمي",
+    "fantasy": "فانتازيا",
+    "mystery": "بوليسي",
+    "mangas": "مانجا",
+    "shonen": "شونين",
+    "seinen": "سينين",
+    "shojo": "شوجو",
+    "comics": "قصص مصورة",
+    "us_comics": "كوميكس أمريكي",
+    "franco_belgian": "فرنسي بلجيكي",
+    "essays": "مقالات",
+    "history": "تاريخ",
+    "philosophy": "فلسفة",
+    "signin": "تسجيل الدخول",
+    "view_profile": "عرض الملف الشخصي",
+    "my_favourites": "❤️ مفضلاتي",
+    "language": "اللغة",
+    "logout": "تسجيل الخروج"
+  },
+  "home": {
+    "trending_title": "🔥 شائع هذا الأسبوع",
+    "trending_subtitle": "الكتب الأكثر شعبية",
+    "all_books_title": "📚 كل الكتب",
+    "results_for": "{count} نتيجة لـ \"{query}\"",
+    "books_available": "{count} كتاب متاح",
+    "in_library": "✓ في مكتبتي",
+    "no_books_found": "لم يتم العثور على كتب",
+    "try_another_term": "جرب مصطلح بحث آخر"
+  }
+}

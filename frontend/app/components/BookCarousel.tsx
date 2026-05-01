@@ -20,7 +20,8 @@ type BookItem = {
 };
 
 // Props du composant : on reçoit un tableau de livres depuis le Server Component parent
-export default function BookCarousel({ books }: { books: BookItem[] }) {
+// basePath permet de changer la destination du lien selon le contexte (user ou admin)
+export default function BookCarousel({ books, basePath = "/user/books" }: { books: BookItem[], basePath?: string }) {
   // useRef nous donne une référence directe au <div> scrollable
   // sans déclencher un re-rendu du composant (contrairement à useState)
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -67,7 +68,8 @@ export default function BookCarousel({ books }: { books: BookItem[] }) {
         {books.map((book) => (
           <Link
             key={book.id}
-            href={`/user/books/${book.id}`}
+          // basePath est "/user/books" par défaut, ou "/admin/books" si passé en prop
+            href={`${basePath}/${book.id}`}
             // flex-shrink-0 EMPÊCHE la carte de rétrécir et garde sa taille fixe
             className="flex-shrink-0 w-40 bg-white rounded-xl shadow-sm border border-gray-100 
                        overflow-hidden hover:shadow-md hover:-translate-y-1 

@@ -153,15 +153,37 @@ export default function EditBookForm({ bookId, initialData }: Props) {
           />
         </div>
         <div>
+          {/* 
+            CHAMP : Genre (Liste déroulante)
+            On force le choix parmi les catégories de la Navbar (en minuscules pour correspondre aux URLs)
+          */}
           <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
-          <input
-            type="text"
+          <select
             value={form.genre}
             onChange={(e) => handleChange("genre", e.target.value)}
-            placeholder="Roman, SF, Polar..."
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
+                       focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+          >
+            <option value="" disabled>Sélectionner un genre</option>
+            <optgroup label="Romans">
+              <option value="science-fiction">Science-Fiction</option>
+              <option value="fantasy">Fantasy</option>
+              <option value="policier">Policier</option>
+            </optgroup>
+            <optgroup label="Mangas">
+              <option value="shonen">Shônen</option>
+              <option value="seinen">Seinen</option>
+              <option value="shojo">Shôjo</option>
+            </optgroup>
+            <optgroup label="BD">
+              <option value="comics">Comics US</option>
+              <option value="franco-belge">Franco-Belge</option>
+            </optgroup>
+            <optgroup label="Essais">
+              <option value="histoire">Histoire</option>
+              <option value="philosophie">Philosophie</option>
+            </optgroup>
+          </select>
         </div>
       </div>
 

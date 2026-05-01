@@ -52,6 +52,7 @@ class UserBookCreate(BaseModel):
     book_id: uuid.UUID
     status: str = "TO_READ"
     is_favourite: bool = False
+
 # Schéma pour mettre à jour un livre (ex: modifier la note, ou changer le statut à "Lu")
 class UserBookUpdate(BaseModel):
     status: Optional[str] = None
@@ -60,3 +61,23 @@ class UserBookUpdate(BaseModel):
     is_favourite: Optional[bool] = None
     date_started: Optional[date] = None
     date_finished: Optional[date] = None
+
+
+# ─── Schémas pour les commentaires de livres ───────────────────────────────
+
+# Schéma reçu du frontend lors de la création d'un commentaire
+class CommentCreate(BaseModel):
+    user_id: uuid.UUID   # L'identifiant de l'utilisateur qui commente
+    contenu: str         # Le texte du commentaire
+
+# Schéma renvoyé par l'API après création ou lecture d'un commentaire
+class CommentResponse(BaseModel):
+    id: uuid.UUID
+    book_id: uuid.UUID
+    user_id: uuid.UUID
+    auteur: str          # Prénom + Nom de l'utilisateur (joint depuis la table users)
+    contenu: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True  # Permet la conversion depuis un objet SQLAlchemy

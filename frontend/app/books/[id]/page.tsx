@@ -3,7 +3,6 @@ import Navbar from "@/app/components/Navbar";
 import Link from "next/link";
 import CommentSection from "@/app/components/CommentSection"; // Section des commentaires
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import AddToLibraryButton from "../AddToLibraryButton"; // Composant Client
 import FavouriteButton from "../FavouriteButton"; // Composant Client
 
@@ -31,8 +30,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   // Nécessaire pour savoir si ce livre est dans la liste de l'utilisateur
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("user_session");
-  if (!sessionCookie) redirect("/");
-  const user = JSON.parse(decodeURIComponent(sessionCookie.value));
+  const user = sessionCookie? JSON.parse(decodeURIComponent(sessionCookie.value)): null;
 
   // URL de l'API (utilise la variable d'environnement ou localhost en fallback)
   const apiUrl = process.env.API_URL || "http://localhost:8000";
@@ -41,7 +39,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   // On récupère les détails du livre ET la bibliothèque de l'utilisateur en même temps
   const [bookRes, libraryRes] = await Promise.all([
     fetch(`${apiUrl}/books/${id}`, { cache: "no-store" }),
-    fetch(`${apiUrl}/users/${user.user_id}/library`, { cache: "no-store" })
+    user? fetch(`${apiUrl}/users/${user.user_id}/library`, { cache: "no-store" }): Promise.resolve(new Response("[]"))
   ]);
 
   // Si le livre n'existe pas, affiche un message d'erreur
@@ -62,7 +60,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
       <Navbar />
       <div className="max-w-4xl mx-auto mt-8">
         {/* Bouton de retour vers la bibliothèque */}
-        <Link href="/user/books" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
+        <Link href="/books" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
           ← Retour à la bibliothèque
         </Link>
 
@@ -115,13 +113,13 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
                   </span>
                   <FavouriteButton
                     bookId={book.id}
-                    userId={user.user_id}
+                    userId={user?.user_id??null}
                     isFavourite={isFavourite}
                   />
                 </div>
               ) : (
                 // Sinon, on propose de l'ajouter
-                <AddToLibraryButton bookId={book.id} userId={user.user_id} />
+                <AddToLibraryButton bookId={book.id} userId={user?.user_id??null} />
               )}
             </div>
           </div>
@@ -130,7 +128,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         {/* ─── Section des commentaires ────────────────────────────────────────
             Ce composant est "use client" : il gère l'interactivité (fetch, formulaire)
             On lui passe l'id du livre pour qu'il charge et envoie les bons commentaires */}
-        <CommentSection bookId={id} />
+        <CommentSection bookId={id} userId={user?.user_id??null} />
 
       </div>
     </main>
