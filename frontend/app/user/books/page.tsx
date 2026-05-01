@@ -10,6 +10,7 @@ import FavouriteButton from "./FavouriteButton";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getDictionary } from "@/app/i18n/dictionaries";
 
 type BookItem = {
   id: string;
@@ -31,6 +32,9 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const sessionCookie = cookieStore.get("user_session");
   if (!sessionCookie) redirect("/");
   const user = JSON.parse(decodeURIComponent(sessionCookie.value));
+
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "fr";
+  const dict = await getDictionary(locale);
 
   const params = await searchParams;
   // Récupération des différents filtres depuis l'URL
@@ -99,9 +103,9 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
         {/* ===== SECTION HERO =====  */}
         <section className="mb-10">
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-            Bonjour, {user.prenom} 👋
+            {dict.home.greeting.replace("{name}", user.prenom)}
           </h1>
-          <p className="text-gray-500 mt-2 text-lg">Découvrez votre prochaine lecture</p>
+          <p className="text-gray-500 mt-2 text-lg">{dict.home.hero_subtitle}</p>
         </section>
 
         {/* 
@@ -113,8 +117,8 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
           <section className="mb-12">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">🔥 Tendances cette semaine</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Les livres les plus populaires</p>
+                <h2 className="text-xl font-bold text-gray-800">{dict.home.trending_title}</h2>
+                <p className="text-sm text-gray-400 mt-0.5">{dict.home.trending_subtitle}</p>
               </div>
             </div>
             {/* BookCarousel est un Client Component, on lui passe les données depuis le serveur */}
@@ -130,14 +134,23 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
             <div>
               <h2 className="text-xl font-bold text-gray-800">
                 {/* On change le titre selon le filtre actif */}
-                {genreFilter ? ` Genre : ${genreFilter.charAt(0).toUpperCase() + genreFilter.slice(1)}` :
-                 filterType === "recent" ? ` Récemment ajoutés` :
-                 `Tous les livres`}
+                {genreFilter
+                  ? dict.home.genre_label.replace(
+                      "{genre}",
+                      genreFilter.charAt(0).toUpperCase() + genreFilter.slice(1)
+                    )
+                  : filterType === "recent"
+                    ? dict.navbar.recently_added
+                    : dict.home.all_books_title}
               </h2>
               <p className="text-sm text-gray-400 mt-0.5">
-                {isAnyFilterActive
-                  ? `${filteredBooks.length} résultat(s) trouvé(s)`
-                  : `${allBooks.length} livres disponibles`}
+                {recherche
+                  ? dict.home.results_for
+                      .replace("{count}", String(filteredBooks.length))
+                      .replace("{query}", recherche)
+                  : isAnyFilterActive
+                    ? dict.home.results_found.replace("{count}", String(filteredBooks.length))
+                    : dict.home.books_available.replace("{count}", String(allBooks.length))}
               </p>
             </div>
           </div>
@@ -188,7 +201,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                         <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm
                                          rounded-full px-2 py-0.5 text-xs font-semibold
                                          text-emerald-600 shadow-sm">
-                          ✓ Ma biblio
+                          {dict.home.in_library}
                         </span>
                       )}
                     </div>

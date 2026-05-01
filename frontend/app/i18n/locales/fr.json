@@ -22,9 +22,13 @@
     "logout": "Se déconnecter"
   },
   "home": {
+    "greeting": "Bonjour, {name} ",
+    "hero_subtitle": "Découvrez votre prochaine lecture",
     "trending_title": "🔥 Tendances cette semaine",
     "trending_subtitle": "Les livres les plus populaires",
-    "all_books_title": "📚 Tous les livres",
+    "all_books_title": " Tous les livres",
+    "genre_label": "Genre : {genre}",
+    "results_found": "{count} résultat(s) trouvé(s)",
     "results_for": "{count} résultat(s) pour \"{query}\"",
     "books_available": "{count} livres disponibles",
     "in_library": "✓ Ma biblio",

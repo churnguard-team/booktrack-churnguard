@@ -22,9 +22,13 @@
     "logout": "تسجيل الخروج"
   },
   "home": {
+    "greeting": "مرحباً، {name} ",
+    "hero_subtitle": "اكتشف قراءتك القادمة",
     "trending_title": "🔥 شائع هذا الأسبوع",
     "trending_subtitle": "الكتب الأكثر شعبية",
-    "all_books_title": "📚 كل الكتب",
+    "all_books_title": " كل الكتب",
+    "genre_label": "التصنيف: {genre}",
+    "results_found": "تم العثور على {count} نتيجة",
     "results_for": "{count} نتيجة لـ \"{query}\"",
     "books_available": "{count} كتاب متاح",
     "in_library": "✓ في مكتبتي",
