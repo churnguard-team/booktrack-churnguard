@@ -42,6 +42,56 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const genreFilter = params.genre?.toLowerCase() || ""; // ex: "science-fiction"
   const filterType = params.filter?.toLowerCase() || ""; // ex: "recent"
 
+  const normalizeGenre = (value?: string) => {
+    if (!value) return "";
+    const raw = value.toLowerCase().trim();
+    const key = raw
+      .replace(/[\s_]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    // Canonical slugs (match DB values after toLowerCase)
+    const aliases: Record<string, string> = {
+      // Science Fiction
+      "sciencefiction": "science-fiction",
+      "خيال-علمي": "science-fiction",
+      "خيال-علمى": "science-fiction",
+
+      // Thriller / Mystery / Policier
+      "policier": "thriller",
+      "mystery": "thriller",
+      "بوليسي": "thriller",
+
+      // History
+      "history": "histoire",
+      "تاريخ": "histoire",
+
+      // Philosophy
+      "philosophy": "philosophie",
+      "فلسفة": "philosophie",
+
+      // Novel
+      "novels": "roman",
+      "روايات": "roman",
+    };
+
+    return aliases[key] ?? key;
+  };
+
+  const normalizedGenreFilter = normalizeGenre(genreFilter);
+
+  const getGenreLabel = (genreKey: string) => {
+    const labels: Record<string, string> = {
+      "science-fiction": dict.navbar.science_fiction,
+      "fantasy": dict.navbar.fantasy,
+      "thriller": dict.navbar.mystery,
+      "histoire": dict.navbar.history,
+      "philosophie": dict.navbar.philosophy,
+      "roman": dict.navbar.novels,
+    };
+    return labels[genreKey] ?? genreKey;
+  };
+
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
   // ===== APPELS API EN PARALLÈLE (3 requêtes simultanées) =====
@@ -76,9 +126,9 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   }
 
   // 2. Filtre par genre (clic depuis la Navbar)
-  if (genreFilter) {
+  if (normalizedGenreFilter) {
     filteredBooks = filteredBooks.filter((book: BookItem) =>
-      book.genre?.toLowerCase() === genreFilter
+      normalizeGenre(book.genre) === normalizedGenreFilter
     );
   }
 
@@ -92,7 +142,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
    * On vérifie si n'importe quel filtre est actif
    * Si oui, on masquera le carrousel pour laisser toute la place aux résultats.
    */
-  const isAnyFilterActive = Boolean(recherche || genreFilter || filterType);
+  const isAnyFilterActive = Boolean(recherche || normalizedGenreFilter || filterType);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -137,7 +187,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                 {genreFilter
                   ? dict.home.genre_label.replace(
                       "{genre}",
-                      genreFilter.charAt(0).toUpperCase() + genreFilter.slice(1)
+                      getGenreLabel(normalizedGenreFilter)
                     )
                   : filterType === "recent"
                     ? dict.navbar.recently_added

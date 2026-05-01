@@ -124,7 +124,7 @@ export default function Navbar() {
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
               <Link href="/user/books?genre=science-fiction" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.science_fiction")}</Link>
               <Link href="/user/books?genre=fantasy" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.fantasy")}</Link>
-              <Link href="/user/books?genre=policier" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.mystery")}</Link>
+              <Link href="/user/books?genre=thriller" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.mystery")}</Link>
             </div>
           )}
         </div>
