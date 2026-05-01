@@ -40,6 +40,33 @@ npm install next-auth@4
 
 
 
+Configurer l'authentification Google :
+  1) Aller sur la Google Cloud Console :Chaque membre de l'équipe doit se connecter à la Google Cloud Console avec son propre compte Google.
+  2) Créer un projet
+  3) Configurer l'écran de consentement OAuth : Dans le menu, aller à APIs et services > Écran de consentement OAuth. Choisir Externe et cliquer sur Créer. Remplir les informations demandées (nom de l'application, e-mail, etc.). Pas besoin de tout remplir, juste les champs obligatoires.
+  4) Créer des identifiants OAuth 2.0 :  Aller à APIs et services > Identifiants. Cliquer sur + CRÉER DES IDENTIFIANTS et choisir ID client OAuth. Type d'application : Application web.
+  -Origines JavaScript autorisées : Ajouter http://localhost:3000.
+  -URIs de redirection autorisées : Ajouter http://localhost:3000/api/auth/callback/google.
+  -Cliquer sur Créer.
+  5) Copier les clés : Client ID et Client Secret
+  6) Dans le dossier frontend, créez un fichier nommé .env.local.
+  7) Ajoutez-y les variables suivantes en utilisant les clés obtenues à l'étape précédente :
+
+  # Fichier: frontend/.env.local
+
+# Clés obtenues depuis la Google Cloud Console
+GOOGLE_CLIENT_ID="COPIER_VOTRE_CLIENT_ID_ICI"
+GOOGLE_CLIENT_SECRET="COPIER_VOTRE_CLIENT_SECRET_ICI"
+
+# URL de base pour NextAuth en développement
+NEXTAUTH_URL="http://localhost:3000"
+
+# Une chaîne de caractères aléatoire pour sécuriser les sessions
+# Vous pouvez utiliser ce site pour en générer une : https://generate-secret.vercel.app/32
+NEXTAUTH_SECRET="UNE_CHAINE_SECRETE_TRES_SOLIDE_A_GENERER"
+
+8) Lancer l'application
+
 
 
 

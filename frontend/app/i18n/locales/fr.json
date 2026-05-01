@@ -1,0 +1,34 @@
+{
+  "navbar": {
+    "recently_added": "Récemment ajoutés",
+    "novels": "Romans",
+    "science_fiction": "Science-Fiction",
+    "fantasy": "Fantasy",
+    "mystery": "Policier",
+    "mangas": "Mangas",
+    "shonen": "Shônen",
+    "seinen": "Seinen",
+    "shojo": "Shôjo",
+    "comics": "BD",
+    "us_comics": "Comics US",
+    "franco_belgian": "Franco-Belge",
+    "essays": "Essais",
+    "history": "Histoire",
+    "philosophy": "Philosophie",
+    "signin": "Sign In",
+    "view_profile": "Voir Profil",
+    "my_favourites": "❤️ Mes Favoris",
+    "language": "LANGUE",
+    "logout": "Se déconnecter"
+  },
+  "home": {
+    "trending_title": "🔥 Tendances cette semaine",
+    "trending_subtitle": "Les livres les plus populaires",
+    "all_books_title": "📚 Tous les livres",
+    "results_for": "{count} résultat(s) pour \"{query}\"",
+    "books_available": "{count} livres disponibles",
+    "in_library": "✓ Ma biblio",
+    "no_books_found": "Aucun livre trouvé",
+    "try_another_term": "Essayez un autre terme de recherche"
+  }
+}

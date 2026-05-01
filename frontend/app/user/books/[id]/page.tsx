@@ -68,7 +68,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
         {/* Carte principale avec la couverture et les informations du livre */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row gap-8 p-8">
-          
+
           {/* Image de couverture du livre */}
           {book.cover_url ? (
             <img

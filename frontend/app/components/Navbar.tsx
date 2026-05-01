@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import SearchInput from "@/app/admin/books/SearchInput";
 import { Suspense } from "react";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 // Pages sur lesquelles la barre de recherche doit apparaître dans la navbar
 const SEARCH_PAGES = ["/", "/user/books", "/admin/books"];
@@ -23,6 +24,7 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null); // Gère quel sous-menu de catégorie est ouvert
   const router   = useRouter();
   const pathname = usePathname();
+  const { t, locale } = useTranslation();
 
   const showSearch = SEARCH_PAGES.includes(pathname);
 
@@ -107,22 +109,22 @@ export default function Navbar() {
           borderBottom: "2px solid #2f00ffff", paddingBottom: "0.3rem", 
           color: "#333", textDecoration: "none" 
         }}>
-          <span>Récemment ajoutés</span>
+          <span>{t("navbar.recently_added")}</span>
           <div style={{ width: "8px", height: "8px", backgroundColor: "#ef4444", borderRadius: "50%" }}></div>
         </Link>
 
         {/* ROMANS - Bouton et Liste déroulante */}
         <div style={{ position: "relative" }}>
           <div onClick={() => toggleDropdown("romans")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", color: "#555" }}>
-            <span>Romans</span>
+            <span>{t("navbar.novels")}</span>
             <span style={{ fontSize: "0.7rem" }}>▼</span>
           </div>
           {/* Le menu déroulant s'affiche seulement si openDropdown === "romans" */}
           {openDropdown === "romans" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=science-fiction" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>Science-Fiction</Link>
-              <Link href="/user/books?genre=fantasy" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>Fantasy</Link>
-              <Link href="/user/books?genre=policier" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>Policier</Link>
+              <Link href="/user/books?genre=science-fiction" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.science_fiction")}</Link>
+              <Link href="/user/books?genre=fantasy" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.fantasy")}</Link>
+              <Link href="/user/books?genre=policier" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.mystery")}</Link>
             </div>
           )}
         </div>
@@ -130,14 +132,14 @@ export default function Navbar() {
         {/* MANGAS - Bouton et Liste déroulante */}
         <div style={{ position: "relative" }}>
           <div onClick={() => toggleDropdown("mangas")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", color: "#555" }}>
-            <span>Mangas</span>
+            <span>{t("navbar.mangas")}</span>
             <span style={{ fontSize: "0.7rem" }}>▼</span>
           </div>
           {openDropdown === "mangas" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=shonen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>Shônen</Link>
-              <Link href="/user/books?genre=seinen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>Seinen</Link>
-              <Link href="/user/books?genre=shojo" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>Shôjo</Link>
+              <Link href="/user/books?genre=shonen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.shonen")}</Link>
+              <Link href="/user/books?genre=seinen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.seinen")}</Link>
+              <Link href="/user/books?genre=shojo" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.shojo")}</Link>
             </div>
           )}
         </div>
@@ -145,13 +147,13 @@ export default function Navbar() {
         {/* BD - Bouton et Liste déroulante */}
         <div style={{ position: "relative" }}>
           <div onClick={() => toggleDropdown("bd")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", color: "#555" }}>
-            <span>BD</span>
+            <span>{t("navbar.comics")}</span>
             <span style={{ fontSize: "0.7rem" }}>▼</span>
           </div>
           {openDropdown === "bd" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=comics" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>Comics US</Link>
-              <Link href="/user/books?genre=franco-belge" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>Franco-Belge</Link>
+              <Link href="/user/books?genre=comics" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.us_comics")}</Link>
+              <Link href="/user/books?genre=franco-belge" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.franco_belgian")}</Link>
             </div>
           )}
         </div>
@@ -159,13 +161,13 @@ export default function Navbar() {
         {/* ESSAIS - Bouton et Liste déroulante */}
         <div style={{ position: "relative" }}>
           <div onClick={() => toggleDropdown("essais")} style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", color: "#555" }}>
-            <span>Essais</span>
+            <span>{t("navbar.essays")}</span>
             <span style={{ fontSize: "0.7rem" }}>▼</span>
           </div>
           {openDropdown === "essais" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=histoire" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>Histoire</Link>
-              <Link href="/user/books?genre=philosophie" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>Philosophie</Link>
+              <Link href="/user/books?genre=histoire" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.history")}</Link>
+              <Link href="/user/books?genre=philosophie" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.philosophy")}</Link>
             </div>
           )}
         </div>
@@ -192,7 +194,7 @@ export default function Navbar() {
               borderRadius: "999px", fontWeight: "600", fontSize: "0.9rem", textDecoration: "none"
             }}
           >
-            Sign In
+            {t("navbar.signin")}
           </Link>
         ) : (
           <>
@@ -209,30 +211,62 @@ export default function Navbar() {
 
             {isOpen && (
               <div style={{
-                position: "absolute", top: "55px", right: "0",
+                position: "absolute", top: "55px", 
+                ...(locale === "ar" ? { left: "0" } : { right: "0" }),
                 backgroundColor: "#fff", border: "1px solid #ddd",
                 borderRadius: "8px", boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                width: "160px", overflow: "hidden", zIndex: 10
+                width: "180px", overflow: "hidden", zIndex: 10 // Légèrement élargi pour le sélecteur
               }}>
                 <Link
                   href={pathname.startsWith("/admin") ? "/admin/profil" : "/admin/profil"}
                   style={{ display: "block", padding: "12px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}
                 >
-                  Voir Profil
+                  {t("navbar.view_profile")}
                 </Link>
                 {!pathname.startsWith("/admin") && (
                   <Link
                     href="/user/favourites"
                     style={{ display: "block", padding: "12px", color: "#e11d48", textDecoration: "none", borderBottom: "1px solid #eee" }}
                   >
-                    ❤️ Mes Favoris
+                    {t("navbar.my_favourites")}
                   </Link>
                 )}
+                
+                {/* 
+                  ===== SÉLECTEUR DE LANGUE ===== 
+                  Ajouté dans le menu profil pour permettre le changement de langue
+                */}
+                <div style={{ padding: "10px 12px", borderBottom: "1px solid #eee" }}>
+                  <label htmlFor="language-select" style={{ display: "block", fontSize: "0.75rem", color: "#666", marginBottom: "6px", fontWeight: "bold" }}>
+                    {t("navbar.language")}
+                  </label>
+                  <select 
+                    id="language-select"
+                    value={locale} // Utilise la locale courante du contexte
+                    onChange={(e) => {
+                      const newLocale = e.target.value;
+                      // Mettre à jour le cookie
+                      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
+                      // Rafraîchir la page pour appliquer la langue côté serveur
+                      router.refresh();
+                    }}
+                    style={{ 
+                      width: "100%", padding: "6px", fontSize: "0.85rem", 
+                      border: "1px solid #ccc", borderRadius: "4px", 
+                      backgroundColor: "#f8f9fa", cursor: "pointer", color: "#333" 
+                    }}
+                  >
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="ar">🇸🇦 العربية</option>
+                  </select>
+                </div>
+
                 <button
                   onClick={handleLogout}
                   style={{ display: "block", width: "100%", padding: "12px", color: "red", backgroundColor: "transparent", border: "none", textAlign: "left", cursor: "pointer", fontWeight: "bold" }}
                 >
-                  Se déconnecter
+                  {t("navbar.logout")}
                 </button>
               </div>
             )}
