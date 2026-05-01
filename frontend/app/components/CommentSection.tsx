@@ -15,6 +15,7 @@ type Comment = {
 // Props du composant : on lui passe uniquement l'identifiant du livre
 type Props = {
   bookId: string;
+  userId: string;
 };
 
 export default function CommentSection({ bookId }: Props) {

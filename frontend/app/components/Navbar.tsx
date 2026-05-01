@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import { useTranslation } from "@/app/i18n/useTranslation";
 
 // Pages sur lesquelles la barre de recherche doit apparaître dans la navbar
-const SEARCH_PAGES = ["/", "/user/books", "/admin/books"];
+const SEARCH_PAGES = ["/", "/books", "/admin/books"];
 
 /**
  * Composant Navbar : Barre de navigation principale de l'application.
@@ -20,7 +20,7 @@ const SEARCH_PAGES = ["/", "/user/books", "/admin/books"];
 export default function Navbar() {
   const [isOpen, setIsOpen]       = useState(false); // Gère le menu de profil (à droite)
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Détecté depuis le cookie
-  const [homeUrl, setHomeUrl]       = useState("/"); // Lien d'accueil dynamique (/, /user/books ou /admin/books)
+  const [homeUrl, setHomeUrl]       = useState("/"); // Lien d'accueil dynamique (/, /books ou /admin/books)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null); // Gère quel sous-menu de catégorie est ouvert
   const router   = useRouter();
   const pathname = usePathname();
@@ -55,7 +55,7 @@ export default function Navbar() {
         }
       } catch (error) {
         // En cas d'erreur de parsing, on redirige vers /user/books par défaut
-        setHomeUrl("/user/books");
+        setHomeUrl("/books");
       }
     } else {
       setIsLoggedIn(false);
@@ -93,7 +93,7 @@ export default function Navbar() {
       {/* 
         LOGO — redirige vers l'accueil dynamique (homeUrl) 
         - Non connecté : /
-        - User : /user/books
+        - User : /books
         - Admin : /admin/books
       */}
       <Link href={homeUrl} style={{ fontWeight: "bold", fontSize: "1.4rem", color: "#2563eb", flexShrink: 0, textDecoration: "none" }}>
@@ -104,7 +104,7 @@ export default function Navbar() {
       <div style={{ display: "flex", gap: "1.5rem", alignItems: "center", fontWeight: "600", fontSize: "0.95rem" }}>
         
         {/* Élément actif : Récemment ajoutés avec point rouge */}
-        <Link href="/user/books?filter=recent" style={{ 
+        <Link href="/books?filter=recent" style={{ 
           display: "flex", alignItems: "center", gap: "0.5rem", 
           borderBottom: "2px solid #2f00ffff", paddingBottom: "0.3rem", 
           color: "#333", textDecoration: "none" 
@@ -122,9 +122,9 @@ export default function Navbar() {
           {/* Le menu déroulant s'affiche seulement si openDropdown === "romans" */}
           {openDropdown === "romans" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=science-fiction" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.science_fiction")}</Link>
-              <Link href="/user/books?genre=fantasy" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.fantasy")}</Link>
-              <Link href="/user/books?genre=policier" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.mystery")}</Link>
+              <Link href="/books?genre=science-fiction" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.science_fiction")}</Link>
+              <Link href="/books?genre=fantasy" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.fantasy")}</Link>
+              <Link href="/books?genre=policier" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.mystery")}</Link>
             </div>
           )}
         </div>
@@ -137,9 +137,9 @@ export default function Navbar() {
           </div>
           {openDropdown === "mangas" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=shonen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.shonen")}</Link>
-              <Link href="/user/books?genre=seinen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.seinen")}</Link>
-              <Link href="/user/books?genre=shojo" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.shojo")}</Link>
+              <Link href="/books?genre=shonen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.shonen")}</Link>
+              <Link href="/books?genre=seinen" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.seinen")}</Link>
+              <Link href="/books?genre=shojo" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.shojo")}</Link>
             </div>
           )}
         </div>
@@ -152,8 +152,8 @@ export default function Navbar() {
           </div>
           {openDropdown === "bd" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=comics" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.us_comics")}</Link>
-              <Link href="/user/books?genre=franco-belge" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.franco_belgian")}</Link>
+              <Link href="/books?genre=comics" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.us_comics")}</Link>
+              <Link href="/books?genre=franco-belge" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.franco_belgian")}</Link>
             </div>
           )}
         </div>
@@ -166,8 +166,8 @@ export default function Navbar() {
           </div>
           {openDropdown === "essais" && (
             <div style={{ position: "absolute", top: "30px", left: 0, backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)", zIndex: 20, minWidth: "150px" }}>
-              <Link href="/user/books?genre=histoire" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.history")}</Link>
-              <Link href="/user/books?genre=philosophie" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.philosophy")}</Link>
+              <Link href="/books?genre=histoire" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}>{t("navbar.history")}</Link>
+              <Link href="/books?genre=philosophie" onClick={() => setOpenDropdown(null)} style={{ display: "block", padding: "10px 15px", color: "#333", textDecoration: "none" }}>{t("navbar.philosophy")}</Link>
             </div>
           )}
         </div>
@@ -175,7 +175,7 @@ export default function Navbar() {
       </div>
 
       {/* BARRE DE RECHERCHE */}
-      {showSearch && isLoggedIn && (
+      {showSearch && (
         <div style={{ flex: 1, maxWidth: "300px" }}>
           <Suspense fallback={<div style={{ height: "36px" }} />}>
             <SearchInput />
@@ -218,7 +218,7 @@ export default function Navbar() {
                 width: "180px", overflow: "hidden", zIndex: 10 // Légèrement élargi pour le sélecteur
               }}>
                 <Link
-                  href={pathname.startsWith("/admin") ? "/admin/profil" : "/admin/profil"}
+                  href={pathname.startsWith("/admin") ? "/admin/profil" : "/user"}
                   style={{ display: "block", padding: "12px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}
                 >
                   {t("navbar.view_profile")}
