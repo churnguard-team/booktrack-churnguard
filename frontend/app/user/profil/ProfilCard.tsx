@@ -1,23 +1,10 @@
-import Navbar from "@/app/components/Navbar";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-export default async function ProfilPage() {
-  // 1. On ouvre la "boîte à cookies" du serveur (Next 15)
-  const cookieStore = await cookies(); 
-  const sessionCookie = cookieStore.get("user_session");
 
-  // 2. Si le cookie n'existe pas, on le renvoie à l'accueil pour se connecter ! (Sécurité)
-  if (!sessionCookie) {
-    redirect("/");
-  }
+export default async function ProfilCard(props:any) {
 
-  // 3. On décode le JSON stocké dans le cookie
-  const user = JSON.parse(decodeURIComponent(sessionCookie.value));
-
+  const user = props.user;
   return (
     <main style={{ padding: "0", fontFamily: "sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
-      <Navbar />
       
       <div style={{ maxWidth: "600px", margin: "3rem auto", padding: "2.5rem", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2rem", borderBottom: "1px solid #eee", paddingBottom: "1.5rem" }}>

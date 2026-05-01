@@ -51,7 +51,7 @@ export default function Navbar() {
         if (user.role === "admin") {
           setHomeUrl("/admin/books");
         } else {
-          setHomeUrl("/user/books");
+          setHomeUrl("/");
         }
       } catch (error) {
         // En cas d'erreur de parsing, on redirige vers /user/books par défaut

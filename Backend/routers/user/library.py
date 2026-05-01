@@ -53,6 +53,7 @@ def get_user_library(user_id: uuid.UUID, db: Session = Depends(get_db)):
             "book_id": book.id,
             "title": book.title,
             "auteur": book.auteur,
+            "genre": book.genre,
             "cover_url": book.cover_url,
             "status": ubook.status,
             "is_favourite": ubook.is_favourite,
