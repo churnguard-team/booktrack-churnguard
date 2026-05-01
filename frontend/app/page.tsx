@@ -8,6 +8,7 @@ import Navbar from "@/app/components/Navbar";
 import BookCarousel from "@/app/components/BookCarousel";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { getDictionary } from "@/app/i18n/dictionaries";
 
 // Définition du type d'un livre (correspond au schéma BookResponse du backend)
 type BookItem = {
@@ -28,6 +29,11 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const user = sessionCookie
     ? JSON.parse(decodeURIComponent(sessionCookie.value))
     : null; // null = visiteur non connecté
+
+  // ===== LANGUE =====
+  const localeCookie = cookieStore.get("NEXT_LOCALE");
+  const locale = localeCookie?.value || "fr";
+  const dict = await getDictionary(locale);
 
   // ===== 2. PARAMÈTRES DE RECHERCHE =====
   const params = await searchParams;
@@ -80,8 +86,8 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
             {/* En-tête de la section */}
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">🔥 Tendances cette semaine</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Les livres les plus populaires</p>
+                <h2 className="text-xl font-bold text-gray-800">{dict.home.trending_title}</h2>
+                <p className="text-sm text-gray-400 mt-0.5">{dict.home.trending_subtitle}</p>
               </div>
             </div>
 
@@ -104,12 +110,12 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
           {/* En-tête du catalogue avec compteur et barre de recherche */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">📚 Tous les livres</h2>
+              <h2 className="text-xl font-bold text-gray-800">{dict.home.all_books_title}</h2>
               {/* Compteur dynamique */}
               <p className="text-sm text-gray-400 mt-0.5">
                 {recherche
-                  ? `${filteredBooks.length} résultat(s) pour "${recherche}"`
-                  : `${allBooks.length} livres disponibles`}
+                  ? dict.home.results_for.replace("{count}", filteredBooks.length.toString()).replace("{query}", recherche)
+                  : dict.home.books_available.replace("{count}", allBooks.length.toString())}
               </p>
             </div>
           </div>
@@ -168,7 +174,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
                       <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm 
                                        rounded-full px-2 py-0.5 text-xs font-semibold 
                                        text-emerald-600 shadow-sm">
-                        ✓ Ma biblio
+                        {dict.home.in_library}
                       </span>
                     )}
                   </div>
@@ -206,8 +212,8 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
           {filteredBooks.length === 0 && (
             <div className="text-center py-20 text-gray-400">
               <p className="text-5xl mb-4">🔍</p>
-              <p className="text-lg font-medium">Aucun livre trouvé</p>
-              <p className="text-sm mt-1">Essayez un autre terme de recherche</p>
+              <p className="text-lg font-medium">{dict.home.no_books_found}</p>
+              <p className="text-sm mt-1">{dict.home.try_another_term}</p>
             </div>
           )}
 

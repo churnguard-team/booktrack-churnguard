@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 export default function AddToLibraryButton({ bookId, userId }: { bookId: string, userId: string }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleAdd = async () => {
     setLoading(true);
@@ -23,14 +25,14 @@ export default function AddToLibraryButton({ bookId, userId }: { bookId: string,
       });
 
       if (res.ok) {
-        alert(" Livre ajouté à ton étagère personnelle !");
+        alert(t("actions.added_success"));
         router.refresh();
       } else {
         const error = await res.json();
         alert(`❌ ${error.detail}`); // Affichera "Ce livre est déjà dans votre étagère" grâce à ton test Python !
       }
     } catch {
-      alert("Erreur de connexion avec le serveur.");
+      alert(t("actions.server_connection_error"));
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export default function AddToLibraryButton({ bookId, userId }: { bookId: string,
             fontWeight: "bold", transition: "0.2s"
         }}
     >
-      {loading ? "Ajout en cours..." : "➕ Ajouter à ma liste"}
+      {loading ? t("actions.adding") : t("actions.add_to_list")}
     </button>
   );
 }

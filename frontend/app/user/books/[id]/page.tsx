@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AddToLibraryButton from "../AddToLibraryButton"; // Composant Client
 import FavouriteButton from "../FavouriteButton"; // Composant Client
+import { getDictionary } from "@/app/i18n/dictionaries";
 
 // Type TypeScript qui définit la structure d'un livre reçu de l'API
 type BookDetail = {
@@ -34,6 +35,10 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   if (!sessionCookie) redirect("/");
   const user = JSON.parse(decodeURIComponent(sessionCookie.value));
 
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "fr";
+  const dict = await getDictionary(locale);
+  const isRtl = locale === "ar";
+
   // URL de l'API (utilise la variable d'environnement ou localhost en fallback)
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
@@ -45,7 +50,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   ]);
 
   // Si le livre n'existe pas, affiche un message d'erreur
-  if (!bookRes.ok) return <p className="p-8 text-red-500">Livre non trouvé.</p>;
+  if (!bookRes.ok) return <p className="p-8 text-red-500">{dict.book_detail.not_found}</p>;
 
   // Convertit les réponses JSON
   const book: BookDetail = await bookRes.json();
@@ -63,12 +68,12 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
       <div className="max-w-4xl mx-auto mt-8">
         {/* Bouton de retour vers la bibliothèque */}
         <Link href="/user/books" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
-          ← Retour à la bibliothèque
+          {isRtl ? "→" : "←"} {dict.book_detail.back_to_library}
         </Link>
 
         {/* Carte principale avec la couverture et les informations du livre */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row gap-8 p-8">
-          
+
           {/* Image de couverture du livre */}
           {book.cover_url ? (
             <img
@@ -100,7 +105,14 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
             {/* Métadonnées : nombre de pages, date de publication, langue */}
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-gray-500">
-              {book.nb_pages && <p>📄 <span className="font-medium text-gray-700">{book.nb_pages} pages</span></p>}
+              {book.nb_pages && (
+                <p>
+                  📄{" "}
+                  <span className="font-medium text-gray-700">
+                    {dict.book_detail.pages.replace("{count}", String(book.nb_pages))}
+                  </span>
+                </p>
+              )}
               {book.date_publication && <p>📅 <span className="font-medium text-gray-700">{book.date_publication}</span></p>}
               {book.langue && <p>🌍 <span className="font-medium text-gray-700">{book.langue}</span></p>}
             </div>
@@ -111,7 +123,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
                 // Si le livre est déjà dans la liste, on affiche le bouton Favori
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-emerald-600 font-bold bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
-                    ✅ Dans votre bibliothèque
+                    {dict.book_detail.in_your_library}
                   </span>
                   <FavouriteButton
                     bookId={book.id}

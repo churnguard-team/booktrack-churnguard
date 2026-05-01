@@ -2,6 +2,7 @@
 // Ce composant est côté client car il utilise useState, useEffect et les interactions utilisateur
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 // Type qui représente un commentaire tel qu'il est renvoyé par l'API
 type Comment = {
@@ -18,6 +19,8 @@ type Props = {
 };
 
 export default function CommentSection({ bookId }: Props) {
+  const { t, locale } = useTranslation();
+
   // Liste des commentaires affichés
   const [comments, setComments] = useState<Comment[]>([]);
 
@@ -46,7 +49,7 @@ export default function CommentSection({ bookId }: Props) {
         const data: Comment[] = await res.json();
         setComments(data);
       } catch {
-        setError("Impossible de charger les commentaires.");
+        setError(t("comments.load_error"));
       } finally {
         setLoading(false); // On arrête le spinner dans tous les cas
       }
@@ -82,7 +85,7 @@ export default function CommentSection({ bookId }: Props) {
     // Si aucune session n'est trouvée, l'utilisateur n'est pas connecté
     const userId = session?.user_id;
     if (!userId) {
-      setError("Vous devez être connecté pour commenter.");
+      setError(t("comments.must_login"));
       return;
     }
 
@@ -114,7 +117,7 @@ export default function CommentSection({ bookId }: Props) {
       // Vide le champ de saisie après soumission
       setNewComment("");
     } catch {
-      setError("Impossible d'envoyer le commentaire. Réessayez.");
+      setError(t("comments.send_error"));
     } finally {
       setSubmitting(false);
     }
@@ -124,13 +127,13 @@ export default function CommentSection({ bookId }: Props) {
   return (
     <section style={styles.section}>
       {/* Titre de la section */}
-      <h2 style={styles.title}>💬 Commentaires</h2>
+      <h2 style={styles.title}>{t("comments.title")}</h2>
 
       {/* Formulaire d'ajout d'un commentaire */}
       <form onSubmit={handleSubmit} style={styles.form}>
         <textarea
           id="comment-input"
-          placeholder="Partagez votre avis sur ce livre..."
+          placeholder={t("comments.placeholder")}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           rows={3}
@@ -148,7 +151,7 @@ export default function CommentSection({ bookId }: Props) {
             opacity: submitting || !newComment.trim() ? 0.5 : 1,
           }}
         >
-          {submitting ? "Envoi..." : "Publier le commentaire"}
+          {submitting ? t("comments.sending") : t("comments.publish")}
         </button>
       </form>
 
@@ -156,10 +159,10 @@ export default function CommentSection({ bookId }: Props) {
       <div style={styles.list}>
         {loading ? (
           // Affiche un message pendant le chargement
-          <p style={styles.emptyText}>Chargement des commentaires...</p>
+          <p style={styles.emptyText}>{t("comments.loading")}</p>
         ) : comments.length === 0 ? (
           // Aucun commentaire pour ce livre
-          <p style={styles.emptyText}>Aucun commentaire pour l&apos;instant. Soyez le premier !</p>
+          <p style={styles.emptyText}>{t("comments.empty")}</p>
         ) : (
           // Affiche chaque commentaire dans une carte
           comments.map((comment) => (
@@ -174,7 +177,7 @@ export default function CommentSection({ bookId }: Props) {
                   <p style={styles.authorName}>{comment.auteur}</p>
                   {/* Formatage de la date en français */}
                   <p style={styles.date}>
-                    {new Date(comment.created_at).toLocaleDateString("fr-FR", {
+                    {new Date(comment.created_at).toLocaleDateString(locale, {
                       day: "numeric",
                       month: "long",
                       year: "numeric",

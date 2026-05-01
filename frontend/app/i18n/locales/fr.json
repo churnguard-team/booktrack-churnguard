@@ -1,0 +1,57 @@
+{
+  "navbar": {
+    "recently_added": "Récemment ajoutés",
+    "novels": "Romans",
+    "science_fiction": "Science-Fiction",
+    "fantasy": "Fantasy",
+    "mystery": "Policier",
+    "mangas": "Mangas",
+    "shonen": "Shônen",
+    "seinen": "Seinen",
+    "shojo": "Shôjo",
+    "comics": "BD",
+    "us_comics": "Comics US",
+    "franco_belgian": "Franco-Belge",
+    "essays": "Essais",
+    "history": "Histoire",
+    "philosophy": "Philosophie",
+    "signin": "Sign In",
+    "view_profile": "Voir Profil",
+    "my_favourites": "❤️ Mes Favoris",
+    "language": "LANGUE",
+    "logout": "Se déconnecter"
+  },
+  "home": {
+    "trending_title": "🔥 Tendances cette semaine",
+    "trending_subtitle": "Les livres les plus populaires",
+    "all_books_title": "📚 Tous les livres",
+    "results_for": "{count} résultat(s) pour \"{query}\"",
+    "books_available": "{count} livres disponibles",
+    "in_library": "✓ Ma biblio",
+    "no_books_found": "Aucun livre trouvé",
+    "try_another_term": "Essayez un autre terme de recherche"
+  },
+  "book_detail": {
+    "not_found": "Livre non trouvé.",
+    "back_to_library": "Retour à la bibliothèque",
+    "pages": "{count} pages",
+    "in_your_library": "✅ Dans votre bibliothèque"
+  },
+  "comments": {
+    "title": "💬 Commentaires",
+    "placeholder": "Partagez votre avis sur ce livre...",
+    "publish": "Publier le commentaire",
+    "sending": "Envoi...",
+    "loading": "Chargement des commentaires...",
+    "empty": "Aucun commentaire pour l'instant. Soyez le premier !",
+    "must_login": "Vous devez être connecté pour commenter.",
+    "load_error": "Impossible de charger les commentaires.",
+    "send_error": "Impossible d'envoyer le commentaire. Réessayez."
+  },
+  "actions": {
+    "add_to_list": "➕ Ajouter à ma liste",
+    "adding": "Ajout en cours...",
+    "added_success": "Livre ajouté à ton étagère personnelle !",
+    "server_connection_error": "Erreur de connexion avec le serveur."
+  }
+}
