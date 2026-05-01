@@ -111,13 +111,36 @@ export default function AddBookForm() {
 		onChange={(e) => handleChange("auteur", e.target.value)}
 		style={{ padding: "0.5rem" }}
 	  />
-	  <input
-		type="text"
-		placeholder="Genre"
+	  {/* 
+		CHAMP : Genre (Liste déroulante)
+		L'utilisateur doit obligatoirement choisir parmi les catégories définies dans la Navbar
+	  */}
+	  <select
 		value={form.genre}
 		onChange={(e) => handleChange("genre", e.target.value)}
-		style={{ padding: "0.5rem" }}
-	  />
+		style={{ padding: "0.5rem", backgroundColor: "#fff", border: "1px solid #777", borderRadius: "4px" }}
+		required
+	  >
+		<option value="" disabled>Sélectionner un genre *</option>
+		<optgroup label="Romans">
+		  <option value="science-fiction">Science-Fiction</option>
+		  <option value="fantasy">Fantasy</option>
+		  <option value="policier">Policier</option>
+		</optgroup>
+		<optgroup label="Mangas">
+		  <option value="shonen">Shônen</option>
+		  <option value="seinen">Seinen</option>
+		  <option value="shojo">Shôjo</option>
+		</optgroup>
+		<optgroup label="BD">
+		  <option value="comics">Comics US</option>
+		  <option value="franco-belge">Franco-Belge</option>
+		</optgroup>
+		<optgroup label="Essais">
+		  <option value="histoire">Histoire</option>
+		  <option value="philosophie">Philosophie</option>
+		</optgroup>
+	  </select>
 	  <input
 		type="url"
 		placeholder="URL de couverture"

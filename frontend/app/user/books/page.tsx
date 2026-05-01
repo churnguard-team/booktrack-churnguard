@@ -20,7 +20,11 @@ type BookItem = {
   cover_url?: string;
 };
 
-export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+/**
+ * Page principale des livres pour l'utilisateur.
+ * Elle lit maintenant plusieurs paramètres dans l'URL (q, genre, filter).
+ */
+export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string, genre?: string, filter?: string }> }) {
 
   // ===== AUTHENTIFICATION =====
   const cookieStore = await cookies();
@@ -29,7 +33,11 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const user = JSON.parse(decodeURIComponent(sessionCookie.value));
 
   const params = await searchParams;
+  // Récupération des différents filtres depuis l'URL
   const recherche = params.q?.toLowerCase() || "";
+  const genreFilter = params.genre?.toLowerCase() || ""; // ex: "science-fiction"
+  const filterType = params.filter?.toLowerCase() || ""; // ex: "recent"
+
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
   // ===== APPELS API EN PARALLÈLE (3 requêtes simultanées) =====
@@ -49,10 +57,38 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
     library.map((ub: { book_id: string; is_favourite: boolean }) => [ub.book_id, ub])
   );
 
-  // ===== FILTRE DE RECHERCHE =====
-  const filteredBooks = allBooks.filter((book: BookItem) =>
-    book.title.toLowerCase().includes(recherche)
-  );
+  /**
+   * ===== LOGIQUE DE FILTRAGE =====
+   * On part de la liste complète de tous les livres, 
+   * puis on applique les filtres demandés un par un.
+   */
+  let filteredBooks = allBooks;
+
+  // 1. Filtre par barre de recherche (titre)
+  if (recherche) {
+    filteredBooks = filteredBooks.filter((book: BookItem) =>
+      book.title.toLowerCase().includes(recherche)
+    );
+  }
+
+  // 2. Filtre par genre (clic depuis la Navbar)
+  if (genreFilter) {
+    filteredBooks = filteredBooks.filter((book: BookItem) =>
+      book.genre?.toLowerCase() === genreFilter
+    );
+  }
+
+  // 3. Filtre "Récemment ajoutés"
+  if (filterType === "recent") {
+    // Pour simuler "les plus récents", on inverse la liste de la BDD
+    filteredBooks = [...filteredBooks].reverse();
+  }
+
+  /**
+   * On vérifie si n'importe quel filtre est actif
+   * Si oui, on masquera le carrousel pour laisser toute la place aux résultats.
+   */
+  const isAnyFilterActive = Boolean(recherche || genreFilter || filterType);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -68,8 +104,12 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
           <p className="text-gray-500 mt-2 text-lg">Découvrez votre prochaine lecture</p>
         </section>
 
-        {/* ===== CAROUSEL TENDANCES ===== */}
-        {trendingBooks.length > 0 && !recherche && (
+        {/* 
+          ===== CAROUSEL TENDANCES =====
+          Il ne s'affiche QUE s'il n'y a AUCUN filtre actif (!isAnyFilterActive) 
+          et qu'il y a des livres tendances.
+        */}
+        {trendingBooks.length > 0 && !isAnyFilterActive && (
           <section className="mb-12">
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -84,14 +124,19 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
 
         <div className="border-t border-gray-200 mb-8" />
 
-        {/* ===== CATALOGUE COMPLET ===== */}
+        {/* ===== CATALOGUE COMPLET OU RÉSULTATS DE FILTRAGE ===== */}
         <section>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">📚 Tous les livres</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                {/* On change le titre selon le filtre actif */}
+                {genreFilter ? ` Genre : ${genreFilter.charAt(0).toUpperCase() + genreFilter.slice(1)}` :
+                 filterType === "recent" ? ` Récemment ajoutés` :
+                 `Tous les livres`}
+              </h2>
               <p className="text-sm text-gray-400 mt-0.5">
-                {recherche
-                  ? `${filteredBooks.length} résultat(s) pour "${recherche}"`
+                {isAnyFilterActive
+                  ? `${filteredBooks.length} résultat(s) trouvé(s)`
                   : `${allBooks.length} livres disponibles`}
               </p>
             </div>
@@ -194,7 +239,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
             <div className="text-center py-20 text-gray-400">
               <p className="text-5xl mb-4">🔍</p>
               <p className="text-lg font-medium">Aucun livre trouvé</p>
-              <p className="text-sm mt-1">Essayez un autre terme de recherche</p>
+              <p className="text-sm mt-1">Essayez un autre filtre</p>
             </div>
           )}
         </section>
