@@ -66,5 +66,10 @@
     "status_reading": "📖 En cours",
     "status_read": "✅ Lu",
     "status_abandoned": "⏸️ Abandonné"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page_of": "Page {page} / {total}"
   }
 }

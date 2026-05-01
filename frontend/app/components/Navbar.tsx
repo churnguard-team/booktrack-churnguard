@@ -218,7 +218,7 @@ export default function Navbar() {
                 width: "180px", overflow: "hidden", zIndex: 10 // Légèrement élargi pour le sélecteur
               }}>
                 <Link
-                  href={pathname.startsWith("/admin") ? "/admin/profil" : "/admin/profil"}
+                  href={pathname.startsWith("/admin") ? "/admin/profil" : "/user/profil"}
                   style={{ display: "block", padding: "12px", color: "#333", textDecoration: "none", borderBottom: "1px solid #eee" }}
                 >
                   {t("navbar.view_profile")}

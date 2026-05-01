@@ -15,6 +15,8 @@ export default function SearchInput() {
     } else {
       params.delete("q");
     }
+    // Si on change la recherche, on revient à la page 1.
+    params.delete("page");
     // "replace" modifie l'URL sans rechargement lourd
     router.replace(`${pathname}?${params.toString()}`);
   };

@@ -23,9 +23,13 @@ type BookItem = {
 
 /**
  * Page principale des livres pour l'utilisateur.
- * Elle lit maintenant plusieurs paramètres dans l'URL (q, genre, filter).
+ * Elle lit maintenant plusieurs paramètres dans l'URL (q, genre, filter, page).
  */
-export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string, genre?: string, filter?: string }> }) {
+export default async function BooksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; genre?: string; filter?: string; page?: string }>;
+}) {
 
   // ===== AUTHENTIFICATION =====
   const cookieStore = await cookies();
@@ -144,6 +148,32 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
    */
   const isAnyFilterActive = Boolean(recherche || normalizedGenreFilter || filterType);
 
+  // ===== PAGINATION =====
+  // On pagine après filtrage: 50 livres par page.
+  const PAGE_SIZE = 50;
+
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+
+  const totalResults = filteredBooks.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+  const pagedBooks = filteredBooks.slice(startIndex, startIndex + PAGE_SIZE);
+
+  const buildPageHref = (targetPage: number) => {
+    const sp = new URLSearchParams();
+
+    if (params.q) sp.set("q", params.q);
+    if (params.genre) sp.set("genre", params.genre);
+    if (params.filter) sp.set("filter", params.filter);
+    if (targetPage > 1) sp.set("page", String(targetPage));
+
+    const qs = sp.toString();
+    return qs ? `/user/books?${qs}` : "/user/books";
+  };
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar />
@@ -207,7 +237,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
 
           {/* ===== GRILLE DES LIVRES ===== */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredBooks.map((book: BookItem) => {
+            {pagedBooks.map((book: BookItem) => {
               // Statut de ce livre dans la bibliothèque de l'utilisateur
               const userBook    = libraryMap.get(book.id);
               const isInLibrary = !!userBook;
@@ -297,8 +327,41 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
             })}
           </div>
 
+          {/* ===== PAGINATION UI ===== */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-between">
+              {safePage > 1 ? (
+                <Link
+                  href={buildPageHref(safePage - 1)}
+                  className="text-sm font-semibold text-blue-600 hover:underline"
+                >
+                  {dict.pagination.previous}
+                </Link>
+              ) : (
+                <span />
+              )}
+
+              <span className="text-sm text-gray-500">
+                {dict.pagination.page_of
+                  .replace("{page}", String(safePage))
+                  .replace("{total}", String(totalPages))}
+              </span>
+
+              {safePage < totalPages ? (
+                <Link
+                  href={buildPageHref(safePage + 1)}
+                  className="text-sm font-semibold text-blue-600 hover:underline"
+                >
+                  {dict.pagination.next}
+                </Link>
+              ) : (
+                <span />
+              )}
+            </div>
+          )}
+
           {/* Message si aucun résultat */}
-          {filteredBooks.length === 0 && (
+          {totalResults === 0 && (
             <div className="text-center py-20 text-gray-400">
               <p className="text-5xl mb-4">🔍</p>
               <p className="text-lg font-medium">Aucun livre trouvé</p>

@@ -66,5 +66,10 @@
     "status_reading": "📖 قيد القراءة",
     "status_read": "✅ تمّت قراءته",
     "status_abandoned": "⏸️ متروك"
+  },
+  "pagination": {
+    "previous": "السابق",
+    "next": "التالي",
+    "page_of": "الصفحة {page} / {total}"
   }
 }
