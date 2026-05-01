@@ -57,5 +57,14 @@
     "adding": "Adding...",
     "added_success": "Book added to your personal shelf!",
     "server_connection_error": "Connection error with the server."
+  },
+  "favourites": {
+    "title": "❤️ My Favourite Books",
+    "empty": "You don't have any favourites yet. Add books to your library and mark them as favourites!",
+    "count": "{count} book(s) in your favourites",
+    "status_to_read": "📌 To read",
+    "status_reading": "📖 Reading",
+    "status_read": "✅ Read",
+    "status_abandoned": "⏸️ Abandoned"
   }
 }

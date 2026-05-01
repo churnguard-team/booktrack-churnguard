@@ -1,6 +1,7 @@
 import Navbar from "@/app/components/Navbar";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getDictionary } from "@/app/i18n/dictionaries";
 
 type UserBook = {
   book_id: string;
@@ -17,6 +18,9 @@ export default async function FavouritesPage() {
   const sessionCookie = cookieStore.get("user_session");
   if (!sessionCookie) redirect("/");
 
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "fr";
+  const dict = await getDictionary(locale);
+
   const user = JSON.parse(decodeURIComponent(sessionCookie.value));
 
   // 2. Appeler TON API Backend pour récupérer sa bibliothèque complète
@@ -30,16 +34,31 @@ export default async function FavouritesPage() {
   // 3. Filtrer uniquement les favoris côté serveur 
   const favourites = library.filter((book) => book.is_favourite === true);
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "TO_READ":
+        return dict.favourites.status_to_read;
+      case "READING":
+        return dict.favourites.status_reading;
+      case "READ":
+        return dict.favourites.status_read;
+      case "ABANDONED":
+        return dict.favourites.status_abandoned;
+      default:
+        return status;
+    }
+  };
+
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
       <Navbar />
 
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1rem 0" }}>
-        <h1 style={{ color: "#111", marginBottom: "0.5rem" }}>❤️ Mes Livres Favoris</h1>
+        <h1 style={{ color: "#111", marginBottom: "0.5rem" }}>{dict.favourites.title}</h1>
         <p style={{ color: "#666", marginBottom: "2rem" }}>
           {favourites.length === 0
-            ? "Tu n'as pas encore de favoris. Ajoute des livres à ta bibliothèque et marque-les en favoris !"
-            : `${favourites.length} livre(s) dans tes favoris`}
+            ? dict.favourites.empty
+            : dict.favourites.count.replace("{count}", String(favourites.length))}
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "1.5rem" }}>
@@ -64,10 +83,7 @@ export default async function FavouritesPage() {
                 backgroundColor: "#fef2f2", color: "#dc2626",
                 fontSize: "0.8rem", fontWeight: "bold"
               }}>
-                {book.status === "TO_READ" && " À lire"}
-                {book.status === "READING" && "📖 En cours"}
-                {book.status === "READ" && "✅ Lu"}
-                {book.status === "ABANDONED" && "⏸️ Abandonné"}
+                {getStatusLabel(book.status)}
               </span>
             </div>
           ))}

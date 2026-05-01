@@ -57,5 +57,14 @@
     "adding": "Ajout en cours...",
     "added_success": "Livre ajouté à ton étagère personnelle !",
     "server_connection_error": "Erreur de connexion avec le serveur."
+  },
+  "favourites": {
+    "title": "❤️ Mes Livres Favoris",
+    "empty": "Tu n'as pas encore de favoris. Ajoute des livres à ta bibliothèque et marque-les en favoris !",
+    "count": "{count} livre(s) dans tes favoris",
+    "status_to_read": "📌 À lire",
+    "status_reading": "📖 En cours",
+    "status_read": "✅ Lu",
+    "status_abandoned": "⏸️ Abandonné"
   }
 }
