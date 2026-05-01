@@ -1,188 +1,480 @@
+# backend/ml_models/training/compare_churn_models.py
+
 """
-Comparaison des modèles de Churn
-================================
-Script pour comparer les performances des 3 algorithmes de churn.
+  COMPARAISON DES 3 MODELES DE CHURN
+  Dataset : IBM Telco Customer Churn (Kaggle)
+  Compatible : XGBoost 3.x + SHAP 0.49
 """
 
-import json
-from pathlib import Path
+import kagglehub
 import pandas as pd
+import numpy as np
+import joblib
+import json
+import warnings
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import seaborn as sns
 
-MODEL_DIR = Path(__file__).parent.parent / "saved_models"
+from pathlib import Path
+from datetime import datetime
 
-MODELS_TO_COMPARE = {
-    'random_forest_churn': 'Random Forest',
-    'xgboost_churn': 'XGBoost',
-    'deep_learning_churn': 'Deep Learning'
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    confusion_matrix,
+    classification_report,
+    roc_curve
+)
+
+warnings.filterwarnings('ignore')
+
+
+# ======================================================
+# CONFIGURATION
+# ======================================================
+
+RANDOM_STATE          = 42
+TEST_SIZE             = 0.2
+VALIDATION_SIZE       = 0.2
+EARLY_STOPPING_ROUNDS = 20
+
+OUTPUT_DIR = Path("saved_models/comparison")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# ======================================================
+# ETAPE 1 -- CHARGEMENT ET PREPARATION
+# ======================================================
+
+print("=" * 60)
+print("  COMPARAISON DES 3 MODELES DE CHURN")
+print("=" * 60)
+
+print("\nChargement de la dataset IBM Telco...")
+
+path = kagglehub.dataset_download("blastchar/telco-customer-churn")
+df   = pd.read_csv(f"{path}/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+
+print(f"Dataset chargee : {df.shape[0]} clients, {df.shape[1]} colonnes")
+
+# Nettoyage
+df = df.drop(columns=['customerID'])
+df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+df['TotalCharges'] = df['TotalCharges'].fillna(0)
+
+# Encodage
+categorical_cols = [
+    'gender', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines',
+    'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
+    'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract',
+    'PaperlessBilling', 'PaymentMethod'
+]
+df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+
+le          = LabelEncoder()
+df['Churn'] = le.fit_transform(df['Churn'])
+
+X             = df.drop(columns=['Churn'])
+y             = df['Churn']
+feature_names = list(X.columns)
+
+print(f"Dataset preparee : {X.shape[0]} lignes, {X.shape[1]} features")
+print(f"Churners : {y.sum()} ({y.mean():.1%}) | Actifs : {(y==0).sum()} ({(y==0).mean():.1%})")
+
+
+# ======================================================
+# ETAPE 2 -- SPLITS
+# ======================================================
+
+print("\nDivision des donnees...")
+
+# Split principal identique pour les 3 modeles
+X_train_raw, X_test_raw, y_train, y_test = train_test_split(
+    X, y,
+    test_size    = TEST_SIZE,
+    random_state = RANDOM_STATE,
+    stratify     = y
+)
+
+# Split validation pour XGBoost uniquement
+X_train_xgb, X_val, y_train_xgb, y_val = train_test_split(
+    X_train_raw, y_train,
+    test_size    = VALIDATION_SIZE / (1 - TEST_SIZE),
+    random_state = RANDOM_STATE,
+    stratify     = y_train
+)
+
+# Normalisation pour Logistic Regression uniquement
+scaler     = StandardScaler()
+X_train_lr = scaler.fit_transform(X_train_raw)
+X_test_lr  = scaler.transform(X_test_raw)
+
+# Random Forest et XGBoost utilisent les donnees brutes
+X_train_rf  = X_train_raw
+X_test_rf   = X_test_raw
+X_test_xgb  = X_test_raw
+
+print(f"Train      : {X_train_raw.shape[0]} exemples")
+print(f"Validation : {X_val.shape[0]} exemples (XGBoost uniquement)")
+print(f"Test       : {X_test_raw.shape[0]} exemples")
+
+
+# ======================================================
+# ETAPE 3 -- ENTRAINEMENT DES 3 MODELES
+# ======================================================
+
+print("\n" + "-" * 60)
+print("  ENTRAINEMENT DES 3 MODELES")
+print("-" * 60)
+
+# -- Modele 1 : Logistic Regression
+print("\n[1/3] Logistic Regression...")
+lr_model = LogisticRegression(
+    C            = 1.0,
+    max_iter     = 1000,
+    class_weight = 'balanced',
+    solver       = 'lbfgs',
+    random_state = RANDOM_STATE
+)
+lr_model.fit(X_train_lr, y_train)
+print("      Logistic Regression entraine")
+
+# -- Modele 2 : Random Forest
+print("\n[2/3] Random Forest...")
+rf_model = RandomForestClassifier(
+    n_estimators = 200,
+    max_depth    = 10,
+    class_weight = 'balanced',
+    random_state = RANDOM_STATE,
+    n_jobs       = -1
+)
+rf_model.fit(X_train_rf, y_train)
+print("      Random Forest entraine")
+
+# -- Modele 3 : XGBoost 3.x
+print("\n[3/3] XGBoost...")
+xgb_model = XGBClassifier(
+    n_estimators         = 200,
+    max_depth            = 7,
+    learning_rate        = 0.1,
+    subsample            = 0.8,
+    colsample_bytree     = 0.8,
+    reg_alpha            = 1,
+    reg_lambda           = 1,
+    random_state         = RANDOM_STATE,
+    eval_metric          = 'logloss',
+    early_stopping_rounds= EARLY_STOPPING_ROUNDS   # dans constructeur pour 3.x
+)
+xgb_model.fit(
+    X_train_xgb, y_train_xgb,
+    eval_set = [(X_val, y_val)],
+    verbose  = False
+)
+print(f"      XGBoost entraine (arrete a l'iteration {xgb_model.best_iteration})")
+
+
+# ======================================================
+# ETAPE 4 -- EVALUATION DES 3 MODELES
+# ======================================================
+
+print("\n" + "-" * 60)
+print("  EVALUATION DES 3 MODELES")
+print("-" * 60)
+
+def compute_metrics(model, X_test, y_test, model_name):
+    y_pred       = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+
+    metrics = {
+        'model'    : model_name,
+        'accuracy' : float(accuracy_score(y_test, y_pred)),
+        'precision': float(precision_score(y_test, y_pred)),
+        'recall'   : float(recall_score(y_test, y_pred)),
+        'f1'       : float(f1_score(y_test, y_pred)),
+        'roc_auc'  : float(roc_auc_score(y_test, y_pred_proba))
+    }
+
+    print(f"\n  {model_name}")
+    print(f"    Accuracy  : {metrics['accuracy']:.2%}")
+    print(f"    Precision : {metrics['precision']:.2%}")
+    print(f"    Recall    : {metrics['recall']:.2%}")
+    print(f"    F1-Score  : {metrics['f1']:.2%}")
+    print(f"    ROC-AUC   : {metrics['roc_auc']:.2%}")
+
+    return metrics, y_pred, y_pred_proba
+
+metrics_lr,  y_pred_lr,  y_proba_lr  = compute_metrics(lr_model,  X_test_lr,  y_test, "Logistic Regression")
+metrics_rf,  y_pred_rf,  y_proba_rf  = compute_metrics(rf_model,  X_test_rf,  y_test, "Random Forest")
+metrics_xgb, y_pred_xgb, y_proba_xgb = compute_metrics(xgb_model, X_test_xgb, y_test, "XGBoost")
+
+all_metrics = [metrics_lr, metrics_rf, metrics_xgb]
+df_metrics  = pd.DataFrame(all_metrics).set_index('model')
+
+print("\n\nTableau de comparaison complet :")
+print(df_metrics.round(4).to_string())
+
+
+# ======================================================
+# ETAPE 5 -- MEILLEUR MODELE
+# ======================================================
+
+best_model_name = df_metrics['roc_auc'].idxmax()
+best_auc        = df_metrics['roc_auc'].max()
+
+print("\n" + "=" * 60)
+print(f"  MEILLEUR MODELE : {best_model_name}")
+print(f"  ROC-AUC         : {best_auc:.2%}")
+print("=" * 60)
+
+
+# ======================================================
+# ETAPE 6 -- VISUALISATIONS
+# ======================================================
+
+print("\nGeneration des graphiques de comparaison...")
+
+models       = ['Logistic\nRegression', 'Random\nForest', 'XGBoost']
+colors       = ['#4C72B0', '#55A868', '#C44E52']
+metric_keys  = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']
+metric_labels= ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
+
+# -- Graphique 1 : Barres groupees toutes metriques
+fig, ax = plt.subplots(figsize=(14, 6))
+
+x     = np.arange(len(metric_labels))
+width = 0.25
+
+for i, (metrics, color, model) in enumerate(zip(
+    [metrics_lr, metrics_rf, metrics_xgb], colors, models
+)):
+    vals = [metrics[k] for k in metric_keys]
+    bars = ax.bar(x + i * width, vals, width,
+                  label=model.replace('\n', ' '),
+                  color=color, alpha=0.85)
+
+    for bar, val in zip(bars, vals):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.005,
+            f'{val:.2%}',
+            ha='center', va='bottom', fontsize=7.5
+        )
+
+ax.set_xlabel('Metrique')
+ax.set_ylabel('Score')
+ax.set_title('Comparaison des 3 Modeles de Churn -- Toutes Metriques')
+ax.set_xticks(x + width)
+ax.set_xticklabels(metric_labels)
+ax.set_ylim(0, 1.12)
+ax.legend()
+ax.grid(axis='y', alpha=0.3)
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'comparison_metrics.png', dpi=100)
+plt.show()
+print("  comparison_metrics.png sauvegarde")
+
+# -- Graphique 2 : Courbes ROC
+fig, ax = plt.subplots(figsize=(8, 6))
+
+for y_proba, color, name, metrics in zip(
+    [y_proba_lr, y_proba_rf, y_proba_xgb],
+    colors,
+    ['Logistic Regression', 'Random Forest', 'XGBoost'],
+    [metrics_lr, metrics_rf, metrics_xgb]
+):
+    fpr, tpr, _ = roc_curve(y_test, y_proba)
+    ax.plot(fpr, tpr, color=color, lw=2,
+            label=f"{name} (AUC = {metrics['roc_auc']:.3f})")
+
+ax.plot([0, 1], [0, 1], 'k--', lw=1, label='Aleatoire (AUC = 0.500)')
+ax.set_xlabel('Taux de Faux Positifs')
+ax.set_ylabel('Taux de Vrais Positifs')
+ax.set_title('Courbes ROC -- Comparaison des 3 Modeles')
+ax.legend(loc='lower right')
+ax.grid(alpha=0.3)
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'comparison_roc_curves.png', dpi=100)
+plt.show()
+print("  comparison_roc_curves.png sauvegarde")
+
+# -- Graphique 3 : Matrices de confusion cote a cote
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+for ax, y_pred, name, color in zip(
+    axes,
+    [y_pred_lr, y_pred_rf, y_pred_xgb],
+    ['Logistic Regression', 'Random Forest', 'XGBoost'],
+    colors
+):
+    cm = confusion_matrix(y_test, y_pred)
+    sns.heatmap(
+        cm, annot=True, fmt='d', ax=ax,
+        cmap=sns.light_palette(color, as_cmap=True),
+        xticklabels=['Actif', 'Churn'],
+        yticklabels=['Actif', 'Churn']
+    )
+    ax.set_title(f'{name}')
+    ax.set_xlabel('Prediction')
+    ax.set_ylabel('Realite')
+
+plt.suptitle('Matrices de Confusion -- Comparaison des 3 Modeles', fontsize=13, y=1.02)
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'comparison_confusion_matrices.png', dpi=100, bbox_inches='tight')
+plt.show()
+print("  comparison_confusion_matrices.png sauvegarde")
+
+# -- Graphique 4 : Radar Chart
+categories = ['Accuracy', 'Precision', 'Recall', 'F1', 'ROC-AUC']
+N          = len(categories)
+angles     = [n / float(N) * 2 * np.pi for n in range(N)]
+angles    += angles[:1]
+
+fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+
+for metrics, color, name in zip(
+    [metrics_lr, metrics_rf, metrics_xgb],
+    colors,
+    ['Logistic Regression', 'Random Forest', 'XGBoost']
+):
+    values  = [metrics[k] for k in ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']]
+    values += values[:1]
+
+    ax.plot(angles, values, 'o-', linewidth=2, color=color, label=name)
+    ax.fill(angles, values, alpha=0.1, color=color)
+
+ax.set_xticks(angles[:-1])
+ax.set_xticklabels(categories, size=11)
+ax.set_ylim(0, 1)
+ax.set_title('Radar Chart -- Performance Globale des 3 Modeles', size=13, pad=20)
+ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
+ax.grid(True)
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'comparison_radar.png', dpi=100, bbox_inches='tight')
+plt.show()
+print("  comparison_radar.png sauvegarde")
+
+# -- Graphique 5 : Tableau visuel recap
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.axis('off')
+
+table_data = [
+    [f"{metrics_lr[k]:.2%}"  for k in metric_keys],
+    [f"{metrics_rf[k]:.2%}"  for k in metric_keys],
+    [f"{metrics_xgb[k]:.2%}" for k in metric_keys],
+]
+
+table = ax.table(
+    cellText    = table_data,
+    rowLabels   = ['Logistic Regression', 'Random Forest', 'XGBoost'],
+    colLabels   = metric_labels,
+    cellLoc     = 'center',
+    loc         = 'center'
+)
+table.auto_set_font_size(False)
+table.set_fontsize(11)
+table.scale(1.2, 2)
+
+# Colorier la meilleure valeur de chaque colonne en vert
+for col_idx, key in enumerate(metric_keys):
+    vals      = [metrics_lr[key], metrics_rf[key], metrics_xgb[key]]
+    best_row  = np.argmax(vals)
+    table[(best_row + 1, col_idx)].set_facecolor('#90EE90')
+
+# Colorier les headers
+for col_idx in range(len(metric_labels)):
+    table[(0, col_idx)].set_facecolor('#4C72B0')
+    table[(0, col_idx)].set_text_props(color='white', fontweight='bold')
+
+ax.set_title('Tableau de Comparaison -- Meilleure valeur en vert', pad=20, fontsize=13)
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'comparison_table.png', dpi=100, bbox_inches='tight')
+plt.show()
+print("  comparison_table.png sauvegarde")
+
+
+# ======================================================
+# ETAPE 7 -- RAPPORT FINAL
+# ======================================================
+
+print("\n" + "=" * 60)
+print("  RAPPORT FINAL DE COMPARAISON")
+print("=" * 60)
+
+print(f"""
+  Logistic Regression
+    ROC-AUC   : {metrics_lr['roc_auc']:.2%}
+    Avantage  : auditable nativement (coefficients)
+    Limite    : moins precis sur donnees complexes
+
+  Random Forest
+    ROC-AUC   : {metrics_rf['roc_auc']:.2%}
+    Avantage  : robuste, simple a configurer
+    Limite    : boite noire
+
+  XGBoost
+    ROC-AUC   : {metrics_xgb['roc_auc']:.2%}
+    Avantage  : le plus precis + feature importance native
+    Limite    : plus complexe a configurer
+
+  CONCLUSION : {best_model_name} recommande
+  Raison     : meilleur ROC-AUC ({best_auc:.2%})
+""")
+
+
+# ======================================================
+# ETAPE 8 -- SAUVEGARDE
+# ======================================================
+
+rapport = {
+    'generated_at'  : datetime.now().isoformat(),
+    'dataset'       : 'IBM Telco Customer Churn',
+    'n_samples'     : int(len(y)),
+    'n_features'    : int(len(feature_names)),
+    'churn_rate'    : float(y.mean()),
+    'models'        : all_metrics,
+    'best_model'    : best_model_name,
+    'best_roc_auc'  : float(best_auc),
+    'graphiques'    : [
+        'comparison_metrics.png',
+        'comparison_roc_curves.png',
+        'comparison_confusion_matrices.png',
+        'comparison_radar.png',
+        'comparison_table.png'
+    ]
 }
 
-METRICS_TO_SHOW = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']
+with open(OUTPUT_DIR / 'comparison_report.json', 'w') as f:
+    json.dump(rapport, f, indent=2)
 
+# Sauvegarder aussi les 3 modeles
+joblib.dump(lr_model,  OUTPUT_DIR / 'logistic_regression.pkl')
+joblib.dump(rf_model,  OUTPUT_DIR / 'random_forest.pkl')
+joblib.dump(xgb_model, OUTPUT_DIR / 'xgboost.pkl')
+joblib.dump(scaler,    OUTPUT_DIR / 'scaler_lr.pkl')
 
-def load_model_metrics(model_name: str) -> dict:
-    """Charger les métriques d'un modèle."""
-    metadata_path = MODEL_DIR / model_name / "metadata.json"
-    
-    if not metadata_path.exists():
-        print(f"⚠️  {model_name}: metadata.json not found")
-        return None
-    
-    with open(metadata_path) as f:
-        metadata = json.load(f)
-    
-    return metadata.get('metrics', {})
+print(f"Tout sauvegarde dans : {OUTPUT_DIR}/")
+print(f"  -> comparison_metrics.png")
+print(f"  -> comparison_roc_curves.png")
+print(f"  -> comparison_confusion_matrices.png")
+print(f"  -> comparison_radar.png")
+print(f"  -> comparison_table.png")
+print(f"  -> comparison_report.json")
+print(f"  -> logistic_regression.pkl")
+print(f"  -> random_forest.pkl")
+print(f"  -> xgboost.pkl")
+print(f"  -> scaler_lr.pkl")
 
-
-def compare_models():
-    """Comparer les performances des modèles."""
-    print("=" * 70)
-    print("📊 COMPARAISON DES MODÈLES DE CHURN")
-    print("=" * 70)
-    
-    # Charger les métriques
-    results = {}
-    for model_key, model_name in MODELS_TO_COMPARE.items():
-        metrics = load_model_metrics(model_key)
-        if metrics:
-            results[model_name] = metrics
-            print(f"\n✓ {model_name}")
-        else:
-            print(f"\n✗ {model_name} (pas encore entraîné)")
-    
-    if not results:
-        print("\n❌ Aucun modèle trouvé!")
-        return
-    
-    # Créer DataFrame de comparaison
-    print("\n" + "=" * 70)
-    print("📋 RÉSULTATS DÉTAILLÉS")
-    print("=" * 70)
-    
-    comparison_df = pd.DataFrame(results).T
-    
-    # Afficher les métriques
-    for metric in METRICS_TO_SHOW:
-        if metric in comparison_df.columns:
-            print(f"\n{metric.upper()}:")
-            print(f"{'-' * 50}")
-            for model, value in comparison_df[metric].items():
-                print(f"  {model:<20} {value:.4f}")
-    
-    # Trouver le meilleur modèle
-    print("\n" + "=" * 70)
-    print("🏆 MEILLEUR MODÈLE PAR MÉTRIQUE")
-    print("=" * 70)
-    
-    for metric in METRICS_TO_SHOW:
-        if metric in comparison_df.columns:
-            best_model = comparison_df[metric].idxmax()
-            best_score = comparison_df[metric].max()
-            print(f"  {metric:<15} → {best_model:<20} ({best_score:.4f})")
-    
-    # Score global (moyenne pondérée)
-    weights = {
-        'accuracy': 0.2,
-        'precision': 0.2,
-        'recall': 0.2,
-        'f1': 0.2,
-        'roc_auc': 0.2
-    }
-    
-    print("\n" + "=" * 70)
-    print("⭐ SCORE GLOBAL (moyenne pondérée)")
-    print("=" * 70)
-    
-    global_scores = {}
-    for model in results.keys():
-        score = sum(
-            results[model].get(metric, 0) * weights.get(metric, 0)
-            for metric in METRICS_TO_SHOW
-        )
-        global_scores[model] = score
-        print(f"  {model:<20} {score:.4f}")
-    
-    best_overall = max(global_scores.items(), key=lambda x: x[1])
-    print(f"\n🥇 RECOMMANDATION: {best_overall[0]} ({best_overall[1]:.4f})")
-    
-    # Visualisation
-    plot_comparison(comparison_df)
-    
-    return comparison_df
-
-
-def plot_comparison(df: pd.DataFrame):
-    """Générer des graphiques de comparaison."""
-    output_dir = MODEL_DIR / "comparison"
-    output_dir.mkdir(exist_ok=True)
-    
-    print(f"\n📈 Génération des graphiques de comparaison...")
-    
-    # 1. Radar chart
-    metrics_subset = [m for m in METRICS_TO_SHOW if m in df.columns]
-    
-    fig, ax = plt.subplots(figsize=(12, 6), subplot_kw=dict(projection='polar'))
-    
-    angles = np.linspace(0, 2 * np.pi, len(metrics_subset), endpoint=False).tolist()
-    angles += angles[:1]  # Complete the circle
-    
-    colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']
-    
-    for idx, (model, color) in enumerate(zip(df.index, colors)):
-        values = df.loc[model, metrics_subset].tolist()
-        values += values[:1]
-        ax.plot(angles, values, 'o-', linewidth=2, label=model, color=color)
-        ax.fill(angles, values, alpha=0.15, color=color)
-    
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(metrics_subset)
-    ax.set_ylim(0, 1)
-    ax.set_title('Comparaison des Performances - Radar Chart', size=14, weight='bold', pad=20)
-    ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.0))
-    ax.grid(True)
-    
-    plt.tight_layout()
-    plt.savefig(output_dir / 'comparison_radar.png', dpi=100, bbox_inches='tight')
-    print(f"  ✓ comparison_radar.png")
-    
-    # 2. Bar chart
-    fig, ax = plt.subplots(figsize=(12, 6))
-    
-    df[metrics_subset].T.plot(kind='bar', ax=ax, width=0.8)
-    ax.set_title('Comparaison des Métriques', size=14, weight='bold')
-    ax.set_ylabel('Score')
-    ax.set_xlabel('')
-    ax.set_ylim(0, 1.05)
-    ax.legend(title='Modèle', loc='best')
-    ax.grid(axis='y', alpha=0.3)
-    plt.xticks(rotation=0)
-    
-    plt.tight_layout()
-    plt.savefig(output_dir / 'comparison_bars.png', dpi=100)
-    print(f"  ✓ comparison_bars.png")
-    
-    # 3. Heatmap
-    fig, ax = plt.subplots(figsize=(10, 4))
-    
-    sns.heatmap(df[metrics_subset], annot=True, fmt='.4f', cmap='RdYlGn',
-                cbar_kws={'label': 'Score'}, ax=ax, vmin=0, vmax=1)
-    ax.set_title('Heatmap des Performances', size=14, weight='bold')
-    
-    plt.tight_layout()
-    plt.savefig(output_dir / 'comparison_heatmap.png', dpi=100)
-    print(f"  ✓ comparison_heatmap.png")
-    
-    print(f"✓ Graphiques sauvegardés dans: {output_dir}")
-
-
-if __name__ == "__main__":
-    import numpy as np
-    
-    print("📊 Script de comparaison des modèles de churn\n")
-    print("Assurez-vous d'avoir d'abord entraîné les modèles:")
-    print("  1. python churn_random_forest_train.py")
-    print("  2. python churn_xgboost_train.py")
-    print("  3. python churn_deeplearning_train.py\n")
-    
-    compare_models()
+print("\n" + "=" * 60)
+print("  COMPARAISON TERMINEE")
+print(f"  MEILLEUR MODELE : {best_model_name} (AUC : {best_auc:.2%})")
+print("=" * 60)

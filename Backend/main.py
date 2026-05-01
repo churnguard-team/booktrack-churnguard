@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import books, users, dashboard, auth, moderator
+from routers import churn
+
 
 app = FastAPI(title="BookTrack AI", version="1.0.0")
 
@@ -11,6 +13,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(churn.router)
 
 app.include_router(auth.router)
 app.include_router(books.router)
