@@ -1,53 +1,58 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User
-from schemas import RegisterRequest, LoginRequest, TokenResponse, UserResponse
-from auth import hash_password, verify_password, create_access_token, decode_token
+from models import User, Admin
+from schemas import LoginRequest
+from passlib.context import CryptContext
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
-bearer = HTTPBearer()
+router = APIRouter(prefix="/auth", tags=["Authentification"])
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == body.email).first():
-        raise HTTPException(status_code=409, detail="Email déjà utilisé")
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Vérifie si le mot de passe correspond au hash bcrypt."""
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        # Fallback : comparaison en clair (pour les comptes de test sans hash)
+        return plain_password == hashed_password
 
-    user = User(
-        email=body.email,
-        password_hash=hash_password(body.password),
-        nom=body.nom,
-        prenom=body.prenom,
-        role=body.role,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+@router.post("/login")
+def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+    # 1. On cherche d'abord si l'email correspond à un ADMIN
+    admin = db.query(Admin).filter(Admin.email == credentials.email).first()
+    
+    if admin:
+        if verify_password(credentials.password, admin.password_hash):
+            return {
+                "message": "Connexion réussie",
+                "role": "admin",
+                "user_id": str(admin.id),
+                "email": admin.email,
+                "has_onboarded": True  # Les admins n'ont pas besoin du quiz
+            }
+        else:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Mot de passe incorrect")
 
-    token = create_access_token({"sub": str(user.id), "role": user.role, "email": user.email})
-    return TokenResponse(access_token=token, role=user.role, nom=user.nom, prenom=user.prenom, user_id=str(user.id))
+    # 2. S'il n'est pas Admin, on cherche si c'est un simple USER
+    user = db.query(User).filter(User.email == credentials.email).first()
+    
+    if user:
+        if verify_password(credentials.password, user.password_hash):
+            # has_onboarded = True si l'utilisateur a déjà rempli ses genres préférés
+            # genres_preferes est un tableau : s'il est vide ou None, c'est un nouvel utilisateur
+            has_onboarded = bool(user.genres_preferes and len(user.genres_preferes) > 0)
+            return {
+                "message": "Connexion réussie",
+                "role": "user",
+                "user_id": str(user.id),
+                "email": user.email,
+                "prenom": user.prenom,   # Pour le message de bienvenue
+                "nom": user.nom,
+                "has_onboarded": has_onboarded  # False = nouvel utilisateur → afficher le quiz
+            }
+        else:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Mot de passe incorrect")
 
-
-@router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == body.email).first()
-    if not user or not user.password_hash or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Compte désactivé")
-
-    token = create_access_token({"sub": str(user.id), "role": user.role, "email": user.email})
-    return TokenResponse(access_token=token, role=user.role, nom=user.nom, prenom=user.prenom, user_id=str(user.id))
-
-
-@router.get("/me", response_model=UserResponse)
-def me(credentials: HTTPAuthorizationCredentials = Depends(bearer), db: Session = Depends(get_db)):
-    payload = decode_token(credentials.credentials)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Token invalide")
-    user = db.query(User).filter(User.id == payload["sub"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
-    return user
+    # 3. Si on arrive ici, c'est que l'email n'existe nulle part
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur inconnu")

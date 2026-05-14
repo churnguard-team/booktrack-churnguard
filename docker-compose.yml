@@ -22,7 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/bookdatabase
     volumes:
-      - ./backend:/app        # ← hot reload : tes modifications s'appliquent direct
+      - ./backend:/app # ← hot reload : tes modifications s'appliquent direct
     depends_on:
       - postgres
     networks:
@@ -35,8 +35,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000      # ← navigateur
-      API_URL: http://backend:8000                    # ← serveur Docker
+      NEXT_PUBLIC_API_URL: http://localhost:8000 # ← navigateur
+      API_URL: http://backend:8000 # ← serveur Docker
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -47,6 +47,7 @@ services:
 
 volumes:
   pg_data:
+
 
 networks:
   booktrack_network:

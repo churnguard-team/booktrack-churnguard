@@ -1,9 +1,11 @@
 import Link from "next/link";
 import AddBookForm from "../AddBookForm";
+import Navbar from "@/app/components/Navbar";
 
 export default function AddBookPage() {
   return (
 	<main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+	  <Navbar />
 	  <h1>Nouveau livre</h1>
 	  <Link
 		href="/admin/books"
