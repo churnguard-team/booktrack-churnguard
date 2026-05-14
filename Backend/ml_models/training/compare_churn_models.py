@@ -22,6 +22,9 @@ from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -57,7 +60,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # ======================================================
 
 print("=" * 60)
-print("  COMPARAISON DES 3 MODELES DE CHURN")
+print("  COMPARAISON DES 4 MODELES DE CHURN")
 print("=" * 60)
 
 print("\nChargement de la dataset IBM Telco...")
@@ -114,10 +117,15 @@ X_train_xgb, X_val, y_train_xgb, y_val = train_test_split(
     stratify     = y_train
 )
 
-# Normalisation pour Logistic Regression uniquement
+# Normalisation pour Logistic Regression et Deep Learning
 scaler     = StandardScaler()
 X_train_lr = scaler.fit_transform(X_train_raw)
 X_test_lr  = scaler.transform(X_test_raw)
+
+# Deep Learning utilise aussi la normalisation
+X_train_dl = X_train_lr
+X_val_dl   = scaler.transform(X_val)
+X_test_dl  = X_test_lr
 
 # Random Forest et XGBoost utilisent les donnees brutes
 X_train_rf  = X_train_raw
@@ -125,7 +133,7 @@ X_test_rf   = X_test_raw
 X_test_xgb  = X_test_raw
 
 print(f"Train      : {X_train_raw.shape[0]} exemples")
-print(f"Validation : {X_val.shape[0]} exemples (XGBoost uniquement)")
+print(f"Validation : {X_val.shape[0]} exemples (XGBoost + Deep Learning)")
 print(f"Test       : {X_test_raw.shape[0]} exemples")
 
 
@@ -134,7 +142,7 @@ print(f"Test       : {X_test_raw.shape[0]} exemples")
 # ======================================================
 
 print("\n" + "-" * 60)
-print("  ENTRAINEMENT DES 3 MODELES")
+print("  ENTRAINEMENT DES 4 MODELES")
 print("-" * 60)
 
 # -- Modele 1 : Logistic Regression
@@ -182,6 +190,38 @@ xgb_model.fit(
 )
 print(f"      XGBoost entraine (arrete a l'iteration {xgb_model.best_iteration})")
 
+# -- Modele 4 : Deep Learning MLP
+print("\n[4/4] Deep Learning (MLP)...")
+tf.random.set_seed(RANDOM_STATE)
+neg = (y_train.values == 0).sum()
+pos = (y_train.values == 1).sum()
+dl_class_weight = {0: 1.0, 1: neg / pos}
+
+dl_model = keras.Sequential([
+    layers.Input(shape=(X_train_dl.shape[1],)),
+    layers.Dense(128), layers.BatchNormalization(), layers.Activation("relu"), layers.Dropout(0.3),
+    layers.Dense(64),  layers.BatchNormalization(), layers.Activation("relu"), layers.Dropout(0.3),
+    layers.Dense(32),  layers.BatchNormalization(), layers.Activation("relu"), layers.Dropout(0.2),
+    layers.Dense(1, activation="sigmoid"),
+])
+dl_model.compile(
+    optimizer=keras.optimizers.Adam(learning_rate=0.001),
+    loss="binary_crossentropy",
+    metrics=["accuracy", keras.metrics.AUC(name="auc")],
+)
+dl_model.fit(
+    X_train_dl, y_train,
+    validation_data=(X_val_dl, y_val),
+    epochs=100, batch_size=32,
+    class_weight=dl_class_weight,
+    callbacks=[
+        keras.callbacks.EarlyStopping(monitor="val_auc", patience=10, restore_best_weights=True, mode="max"),
+        keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=5, min_lr=1e-6),
+    ],
+    verbose=0,
+)
+print("      Deep Learning MLP entraine")
+
 
 # ======================================================
 # ETAPE 4 -- EVALUATION DES 3 MODELES
@@ -217,7 +257,22 @@ metrics_lr,  y_pred_lr,  y_proba_lr  = compute_metrics(lr_model,  X_test_lr,  y_
 metrics_rf,  y_pred_rf,  y_proba_rf  = compute_metrics(rf_model,  X_test_rf,  y_test, "Random Forest")
 metrics_xgb, y_pred_xgb, y_proba_xgb = compute_metrics(xgb_model, X_test_xgb, y_test, "XGBoost")
 
-all_metrics = [metrics_lr, metrics_rf, metrics_xgb]
+# Deep Learning : predict retourne un array 2D
+y_proba_dl = dl_model.predict(X_test_dl, verbose=0).flatten()
+y_pred_dl  = (y_proba_dl >= 0.5).astype(int)
+metrics_dl = {
+    'model'    : 'Deep Learning',
+    'accuracy' : float(accuracy_score(y_test, y_pred_dl)),
+    'precision': float(precision_score(y_test, y_pred_dl)),
+    'recall'   : float(recall_score(y_test, y_pred_dl)),
+    'f1'       : float(f1_score(y_test, y_pred_dl)),
+    'roc_auc'  : float(roc_auc_score(y_test, y_proba_dl)),
+}
+print(f"\n  Deep Learning")
+for k in ['accuracy','precision','recall','f1','roc_auc']:
+    print(f"    {k:10s}: {metrics_dl[k]:.2%}")
+
+all_metrics = [metrics_lr, metrics_rf, metrics_xgb, metrics_dl]
 df_metrics  = pd.DataFrame(all_metrics).set_index('model')
 
 print("\n\nTableau de comparaison complet :")
@@ -243,8 +298,8 @@ print("=" * 60)
 
 print("\nGeneration des graphiques de comparaison...")
 
-models       = ['Logistic\nRegression', 'Random\nForest', 'XGBoost']
-colors       = ['#4C72B0', '#55A868', '#C44E52']
+models       = ['Logistic\nRegression', 'Random\nForest', 'XGBoost', 'Deep\nLearning']
+colors       = ['#4C72B0', '#55A868', '#C44E52', '#8B5CF6']
 metric_keys  = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']
 metric_labels= ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
 
@@ -255,7 +310,7 @@ x     = np.arange(len(metric_labels))
 width = 0.25
 
 for i, (metrics, color, model) in enumerate(zip(
-    [metrics_lr, metrics_rf, metrics_xgb], colors, models
+    [metrics_lr, metrics_rf, metrics_xgb, metrics_dl], colors, models
 )):
     vals = [metrics[k] for k in metric_keys]
     bars = ax.bar(x + i * width, vals, width,
@@ -287,10 +342,10 @@ print("  comparison_metrics.png sauvegarde")
 fig, ax = plt.subplots(figsize=(8, 6))
 
 for y_proba, color, name, metrics in zip(
-    [y_proba_lr, y_proba_rf, y_proba_xgb],
+    [y_proba_lr, y_proba_rf, y_proba_xgb, y_proba_dl],
     colors,
-    ['Logistic Regression', 'Random Forest', 'XGBoost'],
-    [metrics_lr, metrics_rf, metrics_xgb]
+    ['Logistic Regression', 'Random Forest', 'XGBoost', 'Deep Learning'],
+    [metrics_lr, metrics_rf, metrics_xgb, metrics_dl]
 ):
     fpr, tpr, _ = roc_curve(y_test, y_proba)
     ax.plot(fpr, tpr, color=color, lw=2,
@@ -310,10 +365,11 @@ print("  comparison_roc_curves.png sauvegarde")
 # -- Graphique 3 : Matrices de confusion cote a cote
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
+fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 for ax, y_pred, name, color in zip(
     axes,
-    [y_pred_lr, y_pred_rf, y_pred_xgb],
-    ['Logistic Regression', 'Random Forest', 'XGBoost'],
+    [y_pred_lr, y_pred_rf, y_pred_xgb, y_pred_dl],
+    ['Logistic Regression', 'Random Forest', 'XGBoost', 'Deep Learning'],
     colors
 ):
     cm = confusion_matrix(y_test, y_pred)
@@ -342,9 +398,9 @@ angles    += angles[:1]
 fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
 
 for metrics, color, name in zip(
-    [metrics_lr, metrics_rf, metrics_xgb],
+    [metrics_lr, metrics_rf, metrics_xgb, metrics_dl],
     colors,
-    ['Logistic Regression', 'Random Forest', 'XGBoost']
+    ['Logistic Regression', 'Random Forest', 'XGBoost', 'Deep Learning']
 ):
     values  = [metrics[k] for k in ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']]
     values += values[:1]
@@ -371,11 +427,12 @@ table_data = [
     [f"{metrics_lr[k]:.2%}"  for k in metric_keys],
     [f"{metrics_rf[k]:.2%}"  for k in metric_keys],
     [f"{metrics_xgb[k]:.2%}" for k in metric_keys],
+    [f"{metrics_dl[k]:.2%}"  for k in metric_keys],
 ]
 
 table = ax.table(
     cellText    = table_data,
-    rowLabels   = ['Logistic Regression', 'Random Forest', 'XGBoost'],
+    rowLabels   = ['Logistic Regression', 'Random Forest', 'XGBoost', 'Deep Learning'],
     colLabels   = metric_labels,
     cellLoc     = 'center',
     loc         = 'center'
@@ -386,7 +443,7 @@ table.scale(1.2, 2)
 
 # Colorier la meilleure valeur de chaque colonne en vert
 for col_idx, key in enumerate(metric_keys):
-    vals      = [metrics_lr[key], metrics_rf[key], metrics_xgb[key]]
+    vals      = [metrics_lr[key], metrics_rf[key], metrics_xgb[key], metrics_dl[key]]
     best_row  = np.argmax(vals)
     table[(best_row + 1, col_idx)].set_facecolor('#90EE90')
 
@@ -426,6 +483,11 @@ print(f"""
     Avantage  : le plus precis + feature importance native
     Limite    : plus complexe a configurer
 
+  Deep Learning (MLP)
+    ROC-AUC   : {metrics_dl['roc_auc']:.2%}
+    Avantage  : capture des patterns non-lineaires complexes
+    Limite    : boite noire, necessite GPU pour scaler
+
   CONCLUSION : {best_model_name} recommande
   Raison     : meilleur ROC-AUC ({best_auc:.2%})
 """)
@@ -461,6 +523,8 @@ joblib.dump(lr_model,  OUTPUT_DIR / 'logistic_regression.pkl')
 joblib.dump(rf_model,  OUTPUT_DIR / 'random_forest.pkl')
 joblib.dump(xgb_model, OUTPUT_DIR / 'xgboost.pkl')
 joblib.dump(scaler,    OUTPUT_DIR / 'scaler_lr.pkl')
+dl_model.save(OUTPUT_DIR / 'deep_learning.keras')
+joblib.dump(scaler,    OUTPUT_DIR / 'scaler_dl.pkl')
 
 print(f"Tout sauvegarde dans : {OUTPUT_DIR}/")
 print(f"  -> comparison_metrics.png")
@@ -475,6 +539,6 @@ print(f"  -> xgboost.pkl")
 print(f"  -> scaler_lr.pkl")
 
 print("\n" + "=" * 60)
-print("  COMPARAISON TERMINEE")
+print("  COMPARAISON 4 MODELES TERMINEE")
 print(f"  MEILLEUR MODELE : {best_model_name} (AUC : {best_auc:.2%})")
 print("=" * 60)
