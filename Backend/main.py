@@ -7,6 +7,7 @@ from routers.user import library
 from routers.user import profile  # Profil utilisateur (onboarding)
 from routers.user import comments  # Commentaires sur les livres
 from routers import auth_google    # Authentification Google OAuth
+from routers import scraper        # Web scraping — recherche de livres via Open Library
 
 
 app = FastAPI(title="BookTrack AI", version="1.0.0")
@@ -26,6 +27,7 @@ app.include_router(library.router)
 app.include_router(profile.router)   # PATCH /users/{id}/profile → sauvegarde genres
 app.include_router(comments.router)  # GET/POST /books/{id}/comments → commentaires
 app.include_router(auth_google.router)  # POST /auth/google → connexion OAuth Google
+app.include_router(scraper.router)      # GET /scraper/search?q=... → web scraping Open Library
 
 
 @app.get("/")

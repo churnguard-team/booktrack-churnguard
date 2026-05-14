@@ -6,3 +6,4 @@ alembic
 python-dotenv
 pydantic
 passlib[bcrypt]
+httpx                  # Bibliothèque HTTP asynchrone — utilisée pour le web scraping (appels vers Open Library)
