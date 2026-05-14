@@ -10,7 +10,11 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import numpy as np
 
-MODEL_DIR = Path(__file__).parent.parent / "saved_models"
+# Allow saved models either in backend/ml_models/saved_models or at the repository root saved_models.
+BACKEND_MODEL_DIR = Path(__file__).resolve().parent.parent / "saved_models"
+REPO_ROOT_MODEL_DIR = Path(__file__).resolve().parents[3] / "saved_models"
+
+MODEL_DIR = BACKEND_MODEL_DIR if BACKEND_MODEL_DIR.exists() and any(BACKEND_MODEL_DIR.iterdir()) else REPO_ROOT_MODEL_DIR
 
 
 class ChurnPredictor:
@@ -18,7 +22,7 @@ class ChurnPredictor:
     Classe pour charger et utiliser un modèle de churn sauvegardé.
     """
     
-    def __init__(self, model_name: str = "random_forest_churn"):
+    def __init__(self, model_name: str = "random_forest"):
         """
         Initialiser le prédicteur de churn.
         

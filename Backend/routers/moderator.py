@@ -1,7 +1,7 @@
 # backend/routers/moderator.py
 
 from fastapi import APIRouter
-from ml_models.churn.xgboost_model import predict_churn, get_stats_for_dashboard
+from ml_models.churn import predict_churn, get_stats_for_dashboard
 
 router = APIRouter(prefix="/api/moderator", tags=["moderator"])
 

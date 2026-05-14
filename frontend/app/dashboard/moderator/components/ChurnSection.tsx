@@ -1,110 +1,67 @@
-"use client";
+// frontend/app/dashboard/moderator/components/ChurnSection.tsx
 
-interface ChurnSectionProps {
-  data: any;
-}
+'use client'
+import { useEffect, useState } from 'react'
 
-export default function ChurnSection({ data }: ChurnSectionProps) {
-  if (!data) return null;
+export default function ChurnSection() {
+  const [stats, setStats] = useState<any>(null)
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/churn/stats')
+      .then(r => r.json())
+      .then(setStats)
+  }, [])
+
+  if (!stats) return <div>Chargement...</div>
 
   return (
-    <div style={{
-      background: "linear-gradient(135deg, #1a1a1a 0%, #242424 100%)",
-      border: "1px solid #333",
-      borderRadius: "0.75rem",
-      padding: "1.5rem",
-    }}>
-      <h2 style={{ color: "#c9a84c", margin: "0 0 1.5rem", fontSize: "1.1rem", fontWeight: 600 }}>
-        Prédictions de Churn
-      </h2>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Churn Prediction</h2>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-        <div>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-            Utilisateurs à risque
+      {/* Metriques du modele */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'ROC-AUC',   value: (stats.roc_auc * 100).toFixed(1) + '%' },
+          { label: 'Accuracy',  value: (stats.accuracy * 100).toFixed(1) + '%' },
+          { label: 'Precision', value: (stats.precision * 100).toFixed(1) + '%' },
+          { label: 'Recall',    value: (stats.recall * 100).toFixed(1) + '%' },
+        ].map(m => (
+          <div key={m.label} className="bg-white rounded-lg p-4 shadow">
+            <p className="text-gray-500 text-sm">{m.label}</p>
+            <p className="text-2xl font-bold text-blue-600">{m.value}</p>
           </div>
-          <div style={{ color: "#34d399", fontSize: "1.8rem", fontWeight: 700 }}>
-            {data.total_at_risk || 0}
-          </div>
-        </div>
-        <div>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-            Taux de churn estimé
-          </div>
-          <div style={{ color: "#60a5fa", fontSize: "1.8rem", fontWeight: 700 }}>
-            {(data.churn_rate || 0).toFixed(1)}%
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Risk Distribution */}
-      <div>
-        <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.75rem", fontWeight: 600 }}>
-          Distribution des risques
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-          {["FAIBLE", "MOYEN", "ÉLEVÉ", "CRITIQUE"].map((level, idx) => {
-            const colors = ["#34d399", "#fbbf24", "#f97316", "#ef4444"];
-            const count = data.distribution?.[level] || 0;
-            const total = data.total_at_risk || 1;
-            const percent = Math.round((count / total) * 100) || 0;
-
-            return (
-              <div key={level}>
-                <div style={{ fontSize: "0.75rem", color: "#888", marginBottom: "0.25rem" }}>
-                  {level}
-                </div>
-                <div style={{
-                  background: "#111",
-                  borderRadius: "0.25rem",
-                  height: "6px",
-                  overflow: "hidden",
-                }}>
-                  <div style={{
-                    background: colors[idx],
-                    height: "100%",
-                    width: `${percent}%`,
-                    transition: "width 0.3s",
-                  }} />
-                </div>
-                <div style={{ fontSize: "0.75rem", color: colors[idx], marginTop: "0.25rem", fontWeight: 600 }}>
-                  {count} ({percent}%)
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
-        <button style={{
-          flex: 1,
-          padding: "0.75rem",
-          borderRadius: "0.5rem",
-          border: "1px solid #60a5fa",
-          background: "transparent",
-          color: "#60a5fa",
-          cursor: "pointer",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-        }}>
-          Voir les détails
-        </button>
-        <button style={{
-          flex: 1,
-          padding: "0.75rem",
-          borderRadius: "0.5rem",
-          border: "1px solid #c9a84c",
-          background: "transparent",
-          color: "#c9a84c",
-          cursor: "pointer",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-        }}>
-          Former le modèle
-        </button>
-      </div>
+      {/* Comparaison des modeles */}
+      <h3 className="text-lg font-semibold mb-2">Comparaison des modeles</h3>
+      <table className="w-full border-collapse bg-white rounded-lg shadow">
+        <thead>
+          <tr className="bg-blue-600 text-white">
+            <th className="p-3 text-left">Modele</th>
+            <th className="p-3">Accuracy</th>
+            <th className="p-3">Precision</th>
+            <th className="p-3">Recall</th>
+            <th className="p-3">ROC-AUC</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stats.models_comparison.map((m, i) => (
+            <tr key={i}
+                className={m.model === stats.best_model
+                  ? 'bg-green-50 font-semibold'
+                  : 'border-t'}>
+              <td className="p-3">
+                {m.model === stats.best_model ? '🏆 ' : ''}{m.model}
+              </td>
+              <td className="p-3 text-center">{(m.accuracy * 100).toFixed(1)}%</td>
+              <td className="p-3 text-center">{(m.precision * 100).toFixed(1)}%</td>
+              <td className="p-3 text-center">{(m.recall * 100).toFixed(1)}%</td>
+              <td className="p-3 text-center">{(m.roc_auc * 100).toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  );
+  )
 }
