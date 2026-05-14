@@ -43,8 +43,10 @@ export default function ModeratorDashboard() {
       const recData = await recRes.json();
       const statusData = await statusRes.json();
 
+      // recData contient churn_distribution + churn_rate_percent + ml_model
+      // On le passe à ChurnSection ET RecommendationSection
       setData({
-        churnStats: churnData,
+        churnStats: recData,        // dashboard-summary contient tout
         recommendationStats: recData,
         modelStatus: statusData,
         loading: false,
