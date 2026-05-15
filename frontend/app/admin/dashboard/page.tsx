@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ChurnBar from "./ChurnBar";
 import RiskBadge from "./RiskBadge";
 

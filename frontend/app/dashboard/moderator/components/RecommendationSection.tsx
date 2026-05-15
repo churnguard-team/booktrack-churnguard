@@ -1,13 +1,11 @@
 "use client";
 
-interface RecommendationSectionProps {
-  data: any;
-}
+interface RecommendationSectionProps { data: any; }
 
-const riskColor = (niveau: string) => {
-  if (niveau === "CRITICAL") return "#ef4444";
-  if (niveau === "HIGH") return "#f97316";
-  return "#fbbf24";
+const riskBadge = (niveau: string) => {
+  if (niveau === "CRITICAL") return "bg-red-100 text-red-600";
+  if (niveau === "HIGH") return "bg-orange-100 text-orange-600";
+  return "bg-yellow-100 text-yellow-600";
 };
 
 export default function RecommendationSection({ data }: RecommendationSectionProps) {
@@ -18,73 +16,36 @@ export default function RecommendationSection({ data }: RecommendationSectionPro
   const atRiskUsers: any[] = data.top_at_risk_users ?? [];
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(135deg, #1a1a1a 0%, #242424 100%)",
-        border: "1px solid #333",
-        borderRadius: "0.75rem",
-        padding: "1.5rem",
-      }}
-    >
-      <h2 style={{ color: "#c9a84c", margin: "0 0 1.5rem", fontSize: "1.1rem", fontWeight: 600 }}>
-        Recommandations de Livres
-      </h2>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <h2 className="text-base font-semibold text-gray-800 mb-5">Recommandations de Livres</h2>
 
       {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-        <div>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-            Recommandations estimées
-          </div>
-          <div style={{ color: "#a78bfa", fontSize: "1.8rem", fontWeight: 700 }}>
-            {recs.total_recommendations ?? 0}
-          </div>
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+          <p className="text-xs text-gray-500 mb-1">Recommandations estimées</p>
+          <p className="text-2xl font-bold text-violet-600">{recs.total_recommendations ?? 0}</p>
         </div>
-        <div>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-            Couverture utilisateurs
-          </div>
-          <div style={{ color: "#fbbf24", fontSize: "1.8rem", fontWeight: 700 }}>
-            {(recs.coverage ?? 0).toFixed(1)}%
-          </div>
+        <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
+          <p className="text-xs text-gray-500 mb-1">Couverture utilisateurs</p>
+          <p className="text-2xl font-bold text-yellow-600">{(recs.coverage ?? 0).toFixed(1)}%</p>
         </div>
-        <div>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-            Utilisateurs avec livres
-          </div>
-          <div style={{ color: "#34d399", fontSize: "1.4rem", fontWeight: 700 }}>
-            {recs.users_with_books ?? 0}
-          </div>
+        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+          <p className="text-xs text-gray-500 mb-1">Utilisateurs avec livres</p>
+          <p className="text-xl font-bold text-emerald-600">{recs.users_with_books ?? 0}</p>
         </div>
-        <div>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-            Livres disponibles
-          </div>
-          <div style={{ color: "#60a5fa", fontSize: "1.4rem", fontWeight: 700 }}>
-            {recs.total_books ?? 0}
-          </div>
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+          <p className="text-xs text-gray-500 mb-1">Livres disponibles</p>
+          <p className="text-xl font-bold text-blue-600">{recs.total_books ?? 0}</p>
         </div>
       </div>
 
       {/* Top genres */}
       {topGenres.length > 0 && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.75rem", fontWeight: 600 }}>
-            Genres les plus lus
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Genres les plus lus</p>
+          <div className="flex flex-wrap gap-2">
             {topGenres.map((g, i) => (
-              <span
-                key={i}
-                style={{
-                  padding: "0.3rem 0.7rem",
-                  borderRadius: "1rem",
-                  background: "rgba(167,139,250,0.1)",
-                  border: "1px solid rgba(167,139,250,0.3)",
-                  color: "#a78bfa",
-                  fontSize: "0.8rem",
-                }}
-              >
+              <span key={i} className="px-3 py-1 bg-violet-50 border border-violet-200 text-violet-700 text-xs font-medium rounded-full">
                 {g.genre} ({g.total})
               </span>
             ))}
@@ -92,46 +53,22 @@ export default function RecommendationSection({ data }: RecommendationSectionPro
         </div>
       )}
 
-      {/* Utilisateurs prioritaires (à risque) */}
+      {/* At-risk users */}
       <div>
-        <div style={{ color: "#888", fontSize: "0.85rem", marginBottom: "0.75rem", fontWeight: 600 }}>
-          Utilisateurs prioritaires (risque churn)
-        </div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Utilisateurs prioritaires (risque churn)</p>
         {atRiskUsers.length === 0 ? (
-          <div style={{ color: "#555", fontSize: "0.85rem" }}>Aucun utilisateur à risque détecté.</div>
+          <p className="text-sm text-gray-400">Aucun utilisateur à risque détecté.</p>
         ) : (
-          <div style={{ display: "grid", gap: "0.75rem" }}>
+          <div className="space-y-2">
             {atRiskUsers.slice(0, 3).map((user: any, idx: number) => (
-              <div
-                key={idx}
-                style={{
-                  padding: "0.75rem",
-                  background: "#111",
-                  border: "1px solid #222",
-                  borderRadius: "0.5rem",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
+              <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <div>
-                  <div style={{ color: "#ddd", fontSize: "0.9rem", fontWeight: 500 }}>
-                    {user.name}
-                  </div>
-                  <div style={{ color: "#666", fontSize: "0.8rem" }}>{user.email}</div>
+                  <p className="text-sm font-medium text-gray-800">{user.name ?? `${user.prenom ?? ""} ${user.nom ?? ""}`.trim()}</p>
+                  <p className="text-xs text-gray-400">{user.email}</p>
                 </div>
-                <div
-                  style={{
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "0.25rem",
-                    background: `rgba(239,68,68,0.1)`,
-                    color: riskColor(user.niveau_risque),
-                    fontSize: "0.8rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {user.churn_risk.toFixed(0)}% risque
-                </div>
+                <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${riskBadge(user.niveau_risque)}`}>
+                  {user.churn_risk?.toFixed(0) ?? Math.round(user.score * 100)}% risque
+                </span>
               </div>
             ))}
           </div>

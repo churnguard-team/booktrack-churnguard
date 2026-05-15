@@ -22,6 +22,23 @@ export default function LoginPage() {
       return;
     }
 
+    // Hardcoded moderator account (no backend needed)
+    if (email === "m.idomar3821@uca.ac.ma" && password === "1234") {
+      const sessionData = {
+        user_id: "moderator-maroua",
+        role: "MODERATOR",
+        nom: "Idomar",
+        prenom: "Maroua",
+        email: "m.idomar3821@uca.ac.ma",
+        has_onboarded: true,
+        access_token: "demo-token",
+      };
+      document.cookie = `user_session=${encodeURIComponent(JSON.stringify(sessionData))}; path=/; max-age=86400`;
+      localStorage.setItem("booktrack_auth", JSON.stringify(sessionData));
+      router.push("/dashboard/moderator");
+      return;
+    }
+
     try {
       // 1. On interroge notre nouvelle route Backend (port 8000)
       const response = await fetch("http://localhost:8000/auth/login", {
