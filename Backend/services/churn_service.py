@@ -16,43 +16,32 @@ from ml_models.churn import predict_churn
 from ml_models.feature_mapper import BookTrackToTelecomMapper
 
 
+RISK_MAP = {
+    "FAIBLE": "LOW",
+    "MOYEN": "MEDIUM",
+    "ÉLEVÉ": "HIGH",
+    "CRITIQUE": "CRITICAL",
+}
+
+
 def save_prediction(user_id: str, prediction: dict, db: Session) -> ChurnScore:
-    """
-    Save a churn prediction to the database.
-    
-    Before saving, marks all previous predictions for this user as not latest.
-    
-    Args:
-        user_id: UUID of the user
-        prediction: Dict with keys:
-            - churn_probability: float between 0-1
-            - churn_prediction: int (0 or 1)
-            - risk_level: string ("FAIBLE", "MOYEN", "ÉLEVÉ", "CRITIQUE")
-        db: Database session
-    
-    Returns:
-        ChurnScore: The newly created database record
-    """
-    # Mark previous predictions as not latest
     db.query(ChurnScore).filter(
         ChurnScore.user_id == user_id,
         ChurnScore.is_latest == True
     ).update({"is_latest": False})
-    
-    # Save new prediction
+
     score = ChurnScore(
         user_id=user_id,
-        churn_probability=prediction["churn_probability"],
-        churn_prediction=prediction["churn_prediction"],
-        risk_level=prediction["risk_level"],
-        predicted_at=datetime.now(),
+        score=prediction["churn_probability"],
+        niveau_risque=RISK_MAP.get(prediction["risk_level"], "LOW"),
+        date_calcul=datetime.now(),
+        model_version="xgboost-v1",
         is_latest=True
     )
-    
+
     db.add(score)
     db.commit()
     db.refresh(score)
-    
     return score
 
 
@@ -98,6 +87,7 @@ def get_latest_prediction(user_id: str, db: Session) -> ChurnScore | None:
     ).first()
 
 
+
 def get_churn_stats(db: Session) -> dict:
     """
     Get aggregated churn statistics from database.
@@ -129,20 +119,20 @@ def get_churn_stats(db: Session) -> dict:
     total_prob = 0
     
     for score in latest_scores:
-        risk = score.risk_level or "FAIBLE"
+        risk = score.niveau_risque or "LOW"
         counts[risk] = counts.get(risk, 0) + 1
-        total_prob += score.churn_probability
-    
+        total_prob += score.score
+
     total = len(latest_scores)
-    high_risk = counts.get("ÉLEVÉ", 0) + counts.get("CRITIQUE", 0)
-    
+    high_risk = counts.get("HIGH", 0) + counts.get("CRITICAL", 0)
+
     return {
         "total_users_scored": total,
         "churn_distribution": {
-            "FAIBLE": counts.get("FAIBLE", 0),
-            "MOYEN": counts.get("MOYEN", 0),
-            "ÉLEVÉ": counts.get("ÉLEVÉ", 0),
-            "CRITIQUE": counts.get("CRITIQUE", 0),
+            "LOW": counts.get("LOW", 0),
+            "MEDIUM": counts.get("MEDIUM", 0),
+            "HIGH": counts.get("HIGH", 0),
+            "CRITICAL": counts.get("CRITICAL", 0),
         },
         "high_risk_count": high_risk,
         "high_risk_percentage": round((high_risk / total * 100), 2) if total > 0 else 0.0,
@@ -166,8 +156,8 @@ def get_high_risk_users(db: Session, limit: int = 10) -> list[ChurnScore]:
     """
     return db.query(ChurnScore).filter(
         ChurnScore.is_latest == True,
-        ChurnScore.risk_level.in_(["ÉLEVÉ", "CRITIQUE"])
-    ).order_by(desc(ChurnScore.churn_probability)).limit(limit).all()
+        ChurnScore.niveau_risque.in_(["HIGH", "CRITICAL"])
+    ).order_by(desc(ChurnScore.score)).limit(limit).all()
 
 
 def get_user_prediction_history(user_id: str, db: Session, limit: int = 10) -> list[ChurnScore]:

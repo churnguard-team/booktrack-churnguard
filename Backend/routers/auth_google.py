@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User
-import uuid
+from services.churn_service import predict_and_save
 
 # Préfixe /auth/google → appelé par NextAuth après la connexion Google
 router = APIRouter(prefix="/auth", tags=["OAuth Google"])
@@ -51,6 +51,11 @@ def google_login(payload: dict, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
         db.refresh(user)
+
+        try:
+            predict_and_save(str(user.id), db)
+        except Exception:
+            pass  # Don't block registration if prediction fails
 
     # 4. Retourne les données de session au même format que /auth/login
     has_onboarded = bool(user.genres_preferes and len(user.genres_preferes) > 0)

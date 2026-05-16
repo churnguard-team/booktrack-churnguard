@@ -8,7 +8,7 @@ This is a TRANSLATION LAYER that maps:
 """
 
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -63,7 +63,8 @@ class BookTrackToTelecomMapper:
         ).all()
         
         total_books = len(books_data)
-        days_member = (datetime.now() - user.created_at).days + 1  # Avoid division by zero
+        now = datetime.now(timezone.utc)
+        days_member = (now - user.created_at).days + 1  # Avoid division by zero
         
         # Activity metrics
         commented_books = db.query(func.count(UserBook.id)).filter(
@@ -83,7 +84,7 @@ class BookTrackToTelecomMapper:
         
         # Last activity
         last_activity = user.last_login_at or user.created_at
-        days_since_last_activity = (datetime.now() - last_activity).days
+        days_since_last_activity = (now - last_activity).days
         
         # Calculate monthly rate (books per month)
         months_member = max(days_member / 30, 1)  # At least 1 month
@@ -96,36 +97,53 @@ class BookTrackToTelecomMapper:
         # === BUILD FEATURE DICTIONARY ===
         # Following IBM Telco encoding: categorical features as Yes/No strings
         
+        phone_service = is_active
+        multiple_lines = books_per_month > 1
+        internet_service = "Fiber optic"  # all BookTrack users are digital
+        online_security = commented_books > 0
+        online_backup = rated_books > 0
+        device_protection = favorite_books > 0
+        tech_support = days_member > 90
+        streaming_tv = books_per_month > 2
+        streaming_movies = favorite_books > 5
+        contract = "Month-to-month"
+        payment_method = "Bank transfer (automatic)"
+
         features = {
-            # DEMOGRAPHICS (defaults - could be enriched with real data)
-            "gender": "Male",  # Default - could map from user.nom or add to User model
-            "Partner": "No",   # Would need to add to User table
-            "Dependents": "No",  # Would need to add to User table
-            
-            # ACTIVITY-BASED MAPPINGS
-            "PhoneService": "Yes" if is_active else "No",
-            "MultipleLines": "Yes" if books_per_month > 1 else "No",
-            
-            # ENGAGEMENT MAPPINGS
-            "InternetService": "Fiber optic",  # All BookTrack users have "internet"
-            "OnlineSecurity": "Yes" if commented_books > 0 else "No",  # Has written comments
-            "OnlineBackup": "Yes" if rated_books > 0 else "No",  # Has given ratings
-            "DeviceProtection": "Yes" if favorite_books > 0 else "No",  # Has favorites
-            "TechSupport": "Yes" if days_member > 90 else "No",  # Long-term member
-            "StreamingTV": "Yes" if books_per_month > 2 else "No",  # High reading frequency
-            "StreamingMovies": "Yes" if favorite_books > 5 else "No",  # High favorites
-            
-            # CONTRACT & PAYMENT
-            "Contract": "Month-to-month",  # Default
-            "PaperlessBilling": "Yes",  # All BookTrack users are digital
-            "PaymentMethod": "Bank transfer",  # Default
-            
-            # CONTINUOUS FEATURES
-            "tenure": int(days_member / 30),  # Months as member
-            "MonthlyCharges": round(books_per_month * 10, 2),  # $10 per book as analog
-            "TotalCharges": round(total_books * 10, 2),  # Total spend proxy
+            # Continuous
+            "SeniorCitizen": 0,
+            "tenure": int(days_member / 30),
+            "MonthlyCharges": round(books_per_month * 10, 2),
+            "TotalCharges": round(total_books * 10, 2),
+            # One-hot encoded
+            "gender_Male": 1,
+            "Partner_Yes": 0,
+            "Dependents_Yes": 0,
+            "PhoneService_Yes": int(phone_service),
+            "MultipleLines_No phone service": int(not phone_service),
+            "MultipleLines_Yes": int(phone_service and multiple_lines),
+            "InternetService_Fiber optic": 1,
+            "InternetService_No": 0,
+            "OnlineSecurity_No internet service": 0,
+            "OnlineSecurity_Yes": int(online_security),
+            "OnlineBackup_No internet service": 0,
+            "OnlineBackup_Yes": int(online_backup),
+            "DeviceProtection_No internet service": 0,
+            "DeviceProtection_Yes": int(device_protection),
+            "TechSupport_No internet service": 0,
+            "TechSupport_Yes": int(tech_support),
+            "StreamingTV_No internet service": 0,
+            "StreamingTV_Yes": int(streaming_tv),
+            "StreamingMovies_No internet service": 0,
+            "StreamingMovies_Yes": int(streaming_movies),
+            "Contract_One year": 0,
+            "Contract_Two year": 0,
+            "PaperlessBilling_Yes": 1,
+            "PaymentMethod_Credit card (automatic)": 0,
+            "PaymentMethod_Electronic check": 0,
+            "PaymentMethod_Mailed check": 0,
         }
-        
+
         return features
     
     def extract_features_from_dict(self, user_data: Dict[str, Any]) -> Dict[str, Any]:

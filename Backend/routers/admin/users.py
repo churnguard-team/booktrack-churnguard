@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from database import get_db
 from models import User
 from schemas import UserCreate, UserResponse
+from services.churn_service import predict_and_save
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -21,6 +22,12 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    try:
+        predict_and_save(str(new_user.id), db)
+    except Exception:
+        pass  # Don't block registration if prediction fails
+
     return new_user
 
 

@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 DB_USER = "postgres"
 DB_PASSWORD = "1234"  # ⚠️ doit matcher POSTGRES_PASSWORD dans docker-compose
 DB_HOST = "localhost"
-DB_PORT = "5431"  # ✅ IMPORTANT: Docker mapped port
+DB_PORT = "5432"  # Native PostgreSQL port
 DB_NAME = "bookdatabase"
 
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

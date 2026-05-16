@@ -108,23 +108,12 @@ class BookComment(Base):
 
 
 class ChurnScore(Base):
-    """
-    Modèle pour stocker les prédictions de churn XGBoost.
-    Trace l'historique des prédictions pour chaque utilisateur.
-    """
     __tablename__ = "churn_scores"
 
-    # Clé primaire
-    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    
-    # Référence à l'utilisateur (suppression en cascade)
-    user_id          = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    
-    # Résultats de prédiction
-    churn_probability = Column(Float, nullable=False)  # 0.0 - 1.0
-    churn_prediction = Column(Integer, nullable=False)  # 0 ou 1
-    risk_level       = Column(String(20))  # FAIBLE, MOYEN, ÉLEVÉ, CRITIQUE
-    
-    # Métadonnées temporelles
-    predicted_at     = Column(TIMESTAMP(timezone=True), default=datetime.now)
-    is_latest        = Column(Boolean, default=True)  # Pour identifier la dernière prédiction
+    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id       = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    score         = Column(Float, nullable=False)       # maps to DB column 'score'
+    niveau_risque = Column(String(20), nullable=False)  # LOW, MEDIUM, HIGH, CRITICAL
+    date_calcul   = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    model_version = Column(String(50))
+    is_latest     = Column(Boolean, default=True)
