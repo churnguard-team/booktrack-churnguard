@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey
+from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from database import Base
 import uuid
@@ -105,3 +105,26 @@ class BookComment(Base):
 
     # Date de création du commentaire (remplie automatiquement)
     created_at = Column(TIMESTAMP(timezone=True), default=datetime.now)
+
+
+class ChurnScore(Base):
+    """
+    Modèle pour stocker les prédictions de churn XGBoost.
+    Trace l'historique des prédictions pour chaque utilisateur.
+    """
+    __tablename__ = "churn_scores"
+
+    # Clé primaire
+    id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
+    # Référence à l'utilisateur (suppression en cascade)
+    user_id          = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    
+    # Résultats de prédiction
+    churn_probability = Column(Float, nullable=False)  # 0.0 - 1.0
+    churn_prediction = Column(Integer, nullable=False)  # 0 ou 1
+    risk_level       = Column(String(20))  # FAIBLE, MOYEN, ÉLEVÉ, CRITIQUE
+    
+    # Métadonnées temporelles
+    predicted_at     = Column(TIMESTAMP(timezone=True), default=datetime.now)
+    is_latest        = Column(Boolean, default=True)  # Pour identifier la dernière prédiction

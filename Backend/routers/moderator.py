@@ -1,10 +1,21 @@
 # backend/routers/moderator.py
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, desc
 from ml_models.churn import predict_churn, get_stats_for_dashboard
+from ml_models.feature_mapper import BookTrackToTelecomMapper, get_all_users_features
+from services.churn_service import (
+    predict_and_save,
+    get_latest_prediction,
+    get_churn_stats,
+    get_high_risk_users,
+    get_user_prediction_history,
+    batch_predict_and_save,
+    get_churn_trend
+)
 from database import get_db
+from models import ChurnScore
 from services.recommendation_service import (
     get_recommendation_stats,
     recommend_for_user,
@@ -15,31 +26,174 @@ router = APIRouter(prefix="/api/moderator", tags=["moderator"])
 
 
 @router.get("/churn/stats")
-def get_churn_stats():
-    """Stats du modèle ML XGBoost (métriques entraînement)."""
-    return get_stats_for_dashboard()
+def get_churn_statistics_endpoint(db: Session = Depends(get_db)):
+    """
+    Get dashboard churn statistics from database.
+    
+    Returns:
+    - total_users_scored: how many users have predictions
+    - churn_distribution: count by risk level
+    - high_risk_count: users in ÉLEVÉ or CRITIQUE
+    - high_risk_percentage: % of users at risk
+    - average_churn_probability: mean churn score
+    - high_risk_users: top 5 users by churn probability
+    """
+    try:
+        stats = get_churn_stats(db)
+        high_risk = get_high_risk_users(db, limit=5)
+        
+        return {
+            **stats,
+            "high_risk_users": [
+                {
+                    "user_id": str(u.user_id),
+                    "churn_probability": round(u.churn_probability, 3),
+                    "risk_level": u.risk_level,
+                    "predicted_at": u.predicted_at
+                }
+                for u in high_risk
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting churn stats: {str(e)}")
 
 
 @router.post("/churn/predict")
 def predict_user_churn(user_features: dict):
+    """
+    Direct prediction: pass features manually.
+    Useful for testing. For production, use POST /churn/predict-user
+    """
     return predict_churn(user_features)
+
+
+@router.post("/churn/predict-user/{user_id}")
+def predict_user_churn_from_db(user_id: str, db: Session = Depends(get_db)):
+    """
+    Predict churn for a user by their ID.
+    
+    Flow:
+    1. Extract user data from database
+    2. Map to XGBoost features
+    3. Get prediction
+    4. Save to churn_scores table
+    5. Return prediction with mapped features for debugging
+    
+    Returns:
+    - user_id: UUID
+    - churn_probability: 0-1
+    - churn_prediction: 0 or 1
+    - risk_level: FAIBLE/MOYEN/ÉLEVÉ/CRITIQUE
+    - predicted_at: timestamp
+    - mapped_features: the translated features (for debugging)
+    """
+    try:
+        # Predict and save in one step
+        score = predict_and_save(user_id, db)
+        
+        # Also get mapped features for transparency
+        mapper = BookTrackToTelecomMapper()
+        features = mapper.extract_user_features(user_id, db)
+        
+        return {
+            "user_id": user_id,
+            "churn_probability": round(score.churn_probability, 3),
+            "churn_prediction": score.churn_prediction,
+            "risk_level": score.risk_level,
+            "predicted_at": score.predicted_at,
+            "mapped_features": features,  # For debugging/transparency
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+
+
+@router.get("/churn/user/{user_id}/latest")
+def get_user_latest_churn(user_id: str, db: Session = Depends(get_db)):
+    """Get the latest churn prediction for a user."""
+    try:
+        score = get_latest_prediction(user_id, db)
+        if not score:
+            raise HTTPException(status_code=404, detail="No predictions found for this user")
+        
+        return {
+            "user_id": user_id,
+            "churn_probability": score.churn_probability,
+            "risk_level": score.risk_level,
+            "predicted_at": score.predicted_at
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/churn/user/{user_id}/history")
+def get_user_churn_history(user_id: str, limit: int = 10, db: Session = Depends(get_db)):
+    """Get churn prediction history for a user (most recent first)."""
+    try:
+        history = get_user_prediction_history(user_id, db, limit)
+        
+        return {
+            "user_id": user_id,
+            "history": [
+                {
+                    "churn_probability": h.churn_probability,
+                    "risk_level": h.risk_level,
+                    "predicted_at": h.predicted_at
+                }
+                for h in history
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/churn/trend")
+def get_churn_trend_endpoint(days: int = 7, db: Session = Depends(get_db)):
+    """Get churn trend over N days for charts."""
+    try:
+        trend = get_churn_trend(db, days)
+        return {"days": days, "trend": trend}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/churn/batch-predict")
+def batch_predict_all_users(limit: int = None, db: Session = Depends(get_db)):
+    """
+    Predict churn for all active users and save to database.
+    
+    Query params:
+    - limit: Max users to process (for testing)
+    
+    Returns:
+    - total_users: how many were processed
+    - predictions_saved: successful predictions
+    - errors_count: failed predictions
+    - statistics: aggregated stats
+    - errors: list of failures (if any)
+    """
+    try:
+        result = batch_predict_and_save(db, limit)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch prediction error: {str(e)}")
 
 
 @router.get("/dashboard-summary")
 def get_dashboard_summary(db: Session = Depends(get_db)):
     """
     Résumé complet pour le dashboard modérateur.
-    Combine : stats recommandations + churn distribution BD + métriques modèle ML.
+    Combine : stats recommandations + churn stats BD + métriques modèle ML.
     """
     rec_stats = get_recommendation_stats(db)
+    churn_stats = get_churn_stats(db)
 
-    # Métriques du modèle ML (XGBoost/Random Forest)
-    try:
-        ml_stats = get_stats_for_dashboard()
-    except Exception:
-        ml_stats = {}
-
-    return {**rec_stats, "ml_model": ml_stats}
+    return {
+        **rec_stats,
+        "churn": churn_stats,
+        "ml_model": get_stats_for_dashboard()
+    }
 
 
 @router.get("/model-status")
