@@ -1,6 +1,7 @@
 'use client'
 import {useState} from 'react'
 import Link from "next/link"
+import { getGenreLabels } from "@/app/books/genreUtils"
 
 export default function Dashboardlist(props:any){
     const {booksLibrary,user}= props;
@@ -11,14 +12,15 @@ export default function Dashboardlist(props:any){
     const reading = booksLibrary.filter((book:any)=>book.status==="READING");
     const toRead = booksLibrary.filter((book:any)=>book.status==="TO_READ");
     const read = booksLibrary.filter((book:any)=>book.status==="READ");
-    const abondoned = booksLibrary.filter((book:any)=>book.status==="ABANDONED");
+    const abandoned = booksLibrary.filter((book:any)=>book.status==="ABANDONED");
     const favourite = booksLibrary.filter((book:any)=>book.is_favourite);
 
 
 
     const genreCount= booksLibrary.reduce((acc:any,book:any)=>{
-        if(!book.genre) return acc;
-        acc[book.genre]= (acc[book.genre] || 0)+1;
+        const genre = getGenreLabels(book)[0];
+        if(!genre) return acc;
+        acc[genre]= (acc[genre] || 0)+1;
         return acc
 
     },{})
@@ -27,7 +29,7 @@ export default function Dashboardlist(props:any){
 
     let activeArray= activeTab==="reading"? reading:
     activeTab==="read"? read:
-    activeTab==="dropped"? abondoned:
+    activeTab==="abandoned"? abandoned:
     activeTab==="toread"? toRead:
     activeTab==="favourite"? favourite:
     [];
@@ -40,11 +42,11 @@ return (
         {/* Tabs */}
         <div className="flex gap-2 mb-8 border-b border-gray-200">
             {[
-                { key: "reading",   label: "📖 En cours",   count: reading.length },
-                { key: "toread",    label: "📚 À lire",     count: toRead.length },
-                { key: "read",      label: "✅ Lus",         count: read.length },
-                { key: "dropped",   label: "⏸️ Abandonnés", count: abondoned.length },
-                { key: "favourite", label: "❤️ Favoris",    count: favourite.length },
+                { key: "reading",   label: "En cours",   count: reading.length },
+                { key: "toread",    label: "A lire",     count: toRead.length },
+                { key: "read",      label: "Lus",         count: read.length },
+                { key: "abandoned", label: "Abandonnes", count: abandoned.length },
+                { key: "favourite", label: "Favoris",    count: favourite.length },
             ].map(tab => (
                 <button
                     key={tab.key}
@@ -84,11 +86,20 @@ return (
                             <div className="p-4 flex flex-col flex-grow">
                                 <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">{book.title}</h3>
                                 <p className="text-sm font-medium text-gray-500 mb-2">{book.auteur}</p>
-                                {book.genre && (
-                                    <span className="inline-block bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full w-fit">
-                                        {book.genre}
-                                    </span>
-                                )}
+                                <div className="flex flex-col gap-1">
+                                    {book.type && (
+                                        <span className="inline-block bg-gray-900 text-white text-xs px-2 py-0.5 rounded-full w-fit">
+                                            {book.type}
+                                        </span>
+                                    )}
+                                    <div className="flex flex-wrap gap-1">
+                                        {getGenreLabels(book).map((genreLabel) => (
+                                            <span key={genreLabel} className="inline-block bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full w-fit">
+                                                {genreLabel}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </Link>
                         

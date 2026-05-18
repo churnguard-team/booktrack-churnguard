@@ -1,12 +1,21 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date, datetime
 import uuid
+
+class GenreResponse(BaseModel):
+    id: uuid.UUID
+    name: str
+    type: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 class BookBase(BaseModel):
     title: str
     description: Optional[str] = None
     auteur: Optional[str] = None
+    type: Optional[str] = None
     genre: Optional[str] = None
     cover_url: Optional[str] = None
     nb_pages: Optional[int] = None
@@ -14,11 +23,12 @@ class BookBase(BaseModel):
     langue: Optional[str] = None
 
 class BookCreate(BookBase):
-    pass
+    genre_ids: list[uuid.UUID] = Field(default_factory=list)
 
 class BookResponse(BookBase):
     id: uuid.UUID
     created_at: datetime
+    genres: list[GenreResponse] = Field(default_factory=list)
 
     class Config:
         from_attributes = True

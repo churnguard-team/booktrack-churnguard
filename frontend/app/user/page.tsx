@@ -2,6 +2,7 @@ import {cookies} from "next/headers"
 import {redirect} from "next/navigation"
 import DashboardList from "./Components/DashboardList"
 import DashboardNavBar from "./Components/DashboardNavbar";
+import GenreRadar from "./Components/GenreRadar";
 
 
 
@@ -57,6 +58,10 @@ return (
                 </div>
 
             <div className="border-t border-gray-200 mb-8" />
+
+            <div className="mb-8">
+                <GenreRadar books={booksLibrary} />
+            </div>
 
             <DashboardList booksLibrary={booksLibrary} user={user} />
         </div>

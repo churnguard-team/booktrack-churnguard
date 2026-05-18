@@ -1,8 +1,25 @@
-from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey
+from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey, Table
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.orm import relationship
 from database import Base
 import uuid
 from datetime import datetime
+
+
+book_genres_table = Table(
+    "book_genres",
+    Base.metadata,
+    Column("book_id", UUID(as_uuid=True), ForeignKey("books.id", ondelete="CASCADE"), primary_key=True),
+    Column("genre_id", UUID(as_uuid=True), ForeignKey("genres.id", ondelete="CASCADE"), primary_key=True),
+)
+
+
+class Genre(Base):
+    __tablename__ = "genres"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(100), nullable=False)
+    type = Column(String(100))
 
 class Book(Base):
     __tablename__ = "books"
@@ -11,15 +28,20 @@ class Book(Base):
     title            = Column(String(500), nullable=False)
     description      = Column(Text)
     auteur           = Column(String(255))
+    type             = Column(String(100))
     genre            = Column(String(100))
     isbn             = Column(String(20))
     cover_url        = Column(Text)
     nb_pages         = Column(Integer)
     date_publication = Column(Date)
     langue           = Column(String(50), default="fr")
+    external_id      = Column(String(100))
+    external_source  = Column(String(50))
     # Colonnes temporelles
     created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
     updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
+
+    genres = relationship("Genre", secondary=book_genres_table, lazy="joined")
 
 
 class User(Base):

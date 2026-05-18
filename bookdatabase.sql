@@ -260,6 +260,7 @@ CREATE TABLE public.books (
     title character varying(500) NOT NULL,
     description text,
     auteur character varying(255),
+    type character varying(100),
     genre character varying(100),
     isbn character varying(20),
     cover_url text,
@@ -274,6 +275,37 @@ CREATE TABLE public.books (
 
 
 ALTER TABLE public.books OWNER TO postgres;
+
+--
+-- TOC entry 242 (class 1259 OID 16990)
+-- Name: genres; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.genres (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    name character varying(100) NOT NULL,
+    type character varying(100),
+    CONSTRAINT genres_pkey PRIMARY KEY (id),
+    CONSTRAINT genres_name_type_key UNIQUE (name, type)
+);
+
+ALTER TABLE public.genres OWNER TO postgres;
+
+--
+-- TOC entry 243 (class 1259 OID 16998)
+-- Name: book_genres; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.book_genres (
+    book_id uuid NOT NULL,
+    genre_id uuid NOT NULL,
+    CONSTRAINT book_genres_pkey PRIMARY KEY (book_id, genre_id)
+);
+
+ALTER TABLE public.book_genres OWNER TO postgres;
+
+CREATE INDEX idx_book_genres_book_id ON public.book_genres USING btree (book_id);
+CREATE INDEX idx_book_genres_genre_id ON public.book_genres USING btree (genre_id);
 
 --
 -- TOC entry 223 (class 1259 OID 16587)
@@ -1504,6 +1536,22 @@ ALTER TABLE ONLY public.book_comments
 
 ALTER TABLE ONLY public.book_comments
     ADD CONSTRAINT book_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+--
+-- TOC entry 3607 (class 2606 OID 16980)
+-- Name: book_genres book_genres_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.book_genres
+    ADD CONSTRAINT book_genres_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE CASCADE;
+
+--
+-- TOC entry 3608 (class 2606 OID 16981)
+-- Name: book_genres book_genres_genre_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.book_genres
+    ADD CONSTRAINT book_genres_genre_id_fkey FOREIGN KEY (genre_id) REFERENCES public.genres(id) ON DELETE CASCADE;
 
 
 --
