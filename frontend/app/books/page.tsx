@@ -43,7 +43,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const [allBooksRes, libraryRes, trendingRes] = await Promise.all([
     fetch(`${apiUrl}/books`, { cache: "no-store" }),
     user
-      ? fetch(`${apiUrl}/users/${user.user_id}/library`, { cache: "no-store" })
+      ? fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" })
       : Promise.resolve(new Response("[]")),
     fetch(`${apiUrl}/books/trending`, { cache: "no-store" }),
   ]);

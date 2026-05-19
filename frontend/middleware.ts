@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
     // ONBOARDING : si l'utilisateur a DÉJÀ fait le quiz et tente d'y retourner
     // → on le redirige directement vers son espace
     if (pathname === '/onboarding' && user.has_onboarded) {
-      return NextResponse.redirect(new URL('/user/books', request.url));
+      return NextResponse.redirect(new URL('/books', request.url));
     }
 
     // Si un ADMIN va sur '/user/*' → redirige vers /admin/books
@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
     // ACCÈS INTERDIT : Si un 'user' essaie d'entrer dans la zone '/admin'
     if (user.role === 'user' && pathname.startsWith('/admin')) {
         console.log("Tentative de fraude bloquée !");
-        return NextResponse.redirect(new URL('/user/books', request.url))
+        return NextResponse.redirect(new URL('/books', request.url))
     }
 
   } catch (error) {

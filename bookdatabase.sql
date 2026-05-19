@@ -255,13 +255,26 @@ ALTER TABLE public.book_comments OWNER TO postgres;
 -- Name: books; Type: TABLE; Schema: public; Owner: postgres
 --
 
+
+-- Drop the problematic index
+DROP INDEX IF EXISTS public.idx_books_genre;
+
+-- Fix genres table - add explicit PRIMARY KEY and NOT NULL
+CREATE TABLE public.genres (
+    id uuid PRIMARY KEY NOT NULL DEFAULT public.uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(100),
+    UNIQUE(name, type)
+);
+
+
+-- Books table remains unchanged (no genre column needed)
 CREATE TABLE public.books (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL PRIMARY KEY,
     title character varying(500) NOT NULL,
     description text,
     auteur character varying(255),
     type character varying(100),
-    genre character varying(100),
     isbn character varying(20),
     cover_url text,
     nb_pages integer,
@@ -273,39 +286,17 @@ CREATE TABLE public.books (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
-ALTER TABLE public.books OWNER TO postgres;
-
---
--- TOC entry 242 (class 1259 OID 16990)
--- Name: genres; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.genres (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    name character varying(100) NOT NULL,
-    type character varying(100),
-    CONSTRAINT genres_pkey PRIMARY KEY (id),
-    CONSTRAINT genres_name_type_key UNIQUE (name, type)
-);
-
-ALTER TABLE public.genres OWNER TO postgres;
-
---
--- TOC entry 243 (class 1259 OID 16998)
--- Name: book_genres; Type: TABLE; Schema: public; Owner: postgres
---
-
+-- Junction table with proper constraints
 CREATE TABLE public.book_genres (
-    book_id uuid NOT NULL,
-    genre_id uuid NOT NULL,
-    CONSTRAINT book_genres_pkey PRIMARY KEY (book_id, genre_id)
+    book_id uuid NOT NULL REFERENCES public.books(id) ON DELETE CASCADE,
+    genre_id uuid NOT NULL REFERENCES public.genres(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, genre_id)
 );
 
-ALTER TABLE public.book_genres OWNER TO postgres;
+-- Add performance indexes on junction table
+CREATE INDEX idx_book_genres_book_id ON public.book_genres(book_id);
+CREATE INDEX idx_book_genres_genre_id ON public.book_genres(genre_id);
 
-CREATE INDEX idx_book_genres_book_id ON public.book_genres USING btree (book_id);
-CREATE INDEX idx_book_genres_genre_id ON public.book_genres USING btree (genre_id);
 
 --
 -- TOC entry 223 (class 1259 OID 16587)
@@ -738,7 +729,8 @@ ALTER TABLE ONLY public.user_events ALTER COLUMN id SET DEFAULT nextval('public.
 --
 
 COPY public.admins (id, email, password_hash, nom, prenom, role, is_active, created_at, updated_at) FROM stdin;
-47042924-0458-4872-ad3f-90c03ebf2ed9	admin@booktrack.local	admin123	Admin	Admin	SUPER_ADMIN	t	2026-04-26 10:12:04.861623+00	2026-04-26 10:12:04.861623+00
+47042924-0458-4872-ad3f-90c03ebf2ed9	admin@booktrack.local	$2b$12$uC3oEtB57lOKOmXSNDaOE.iTWcQQA0TGWllpqMgg93VsRNxuyvD/C	Admin	Admin	SUPER_ADMIN	t	2026-04-26 10:12:04.861623+00	2026-04-26 10:12:04.861623+00
+fb7f7b56-aa76-454f-a348-d6d4f724c22f	admin@booktrack.com	admin123	Admin	Super	SUPER_ADMIN	t	2026-04-26 10:12:04.861623+00	2026-04-26 10:12:04.861623+00
 \.
 
 
@@ -758,57 +750,142 @@ COPY public.book_comments (id, book_id, user_id, contenu, created_at) FROM stdin
 -- Data for Name: books; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.books (id, title, description, auteur, genre, isbn, cover_url, nb_pages, date_publication, langue, external_id, external_source, created_at, updated_at) FROM stdin;
-f2d4d94f-b688-4218-ab7e-4d8cb903bf8a	Les Ombres de Verre	Un mystere urbain autour dun manuscrit disparu.	Camille Durand	Thriller	9780000000001	https://picsum.photos/seed/book-001/400/600	368	2019-03-14	fr	seed-001	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+COPY public.books (id, title, description, auteur, type, isbn, cover_url, nb_pages, date_publication, langue, external_id, external_source, created_at, updated_at) FROM stdin;
+f2d4d94f-b688-4218-ab7e-4d8cb903bf8a	Les Ombres de Verre	Un mystere urbain autour dun manuscrit disparu.	Camille Durand	Roman	9780000000001	https://picsum.photos/seed/book-001/400/600	368	2019-03-14	fr	seed-001	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 7ee70f51-e7c6-49cd-b782-c2c875711589	La Carte des Saisons	Chronique familiale a travers quatre epoques.	Nicolas Martin	Roman	9780000000002	https://picsum.photos/seed/book-002/400/600	412	2016-09-08	fr	seed-002	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-732b6b9e-4c52-4703-8b5b-2077c7d7e479	Orbitale 7	Une expedition scientifique tourne a lenigme.	Elena Carter	Science-Fiction	9780000000003	https://picsum.photos/seed/book-003/400/600	296	2021-05-21	en	seed-003	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-7addf711-fe13-444b-9f99-0057ffb794ce	Le Quai des Secrets	Une enquete au bord de mer entre deux disparitions.	Hugo Lemaire	Polar	9780000000004	https://picsum.photos/seed/book-004/400/600	334	2018-11-02	fr	seed-004	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-65fff8d2-50b6-4083-a573-a7079f64b24a	La Bibliotheque des Vents	Un village isole et une salle interdite.	Sarah Nguyen	Fantastique	9780000000005	https://picsum.photos/seed/book-005/400/600	284	2020-10-10	fr	seed-005	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-4030c9c3-7288-4200-94a8-b404caea387b	Itineraire Boreal	Carnet de voyage sur les routes du nord.	Lina Moreau	Voyage	9780000000006	https://picsum.photos/seed/book-006/400/600	240	2017-06-18	fr	seed-006	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-cf209f17-c27b-483e-b238-c7da52808846	Ethique en Clair	Introduire les grands dilemmes du quotidien.	Marc Delcourt	Philosophie	9780000000007	https://picsum.photos/seed/book-007/400/600	198	2015-01-12	fr	seed-007	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+732b6b9e-4c52-4703-8b5b-2077c7d7e479	Orbitale 7	Une expedition scientifique tourne a lenigme.	Elena Carter	Roman	9780000000003	https://picsum.photos/seed/book-003/400/600	296	2021-05-21	en	seed-003	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+7addf711-fe13-444b-9f99-0057ffb794ce	Le Quai des Secrets	Une enquete au bord de mer entre deux disparitions.	Hugo Lemaire	Roman	9780000000004	https://picsum.photos/seed/book-004/400/600	334	2018-11-02	fr	seed-004	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+65fff8d2-50b6-4083-a573-a7079f64b24a	La Bibliotheque des Vents	Un village isole et une salle interdite.	Sarah Nguyen	Roman	9780000000005	https://picsum.photos/seed/book-005/400/600	284	2020-10-10	fr	seed-005	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+4030c9c3-7288-4200-94a8-b404caea387b	Itineraire Boreal	Carnet de voyage sur les routes du nord.	Lina Moreau	Essai	9780000000006	https://picsum.photos/seed/book-006/400/600	240	2017-06-18	fr	seed-006	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+cf209f17-c27b-483e-b238-c7da52808846	Ethique en Clair	Introduire les grands dilemmes du quotidien.	Marc Delcourt	Essai	9780000000007	https://picsum.photos/seed/book-007/400/600	198	2015-01-12	fr	seed-007	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 c249b1a4-0073-457e-97fc-c98de9dcc085	Memoires dune Ombre	Portrait intime dun destin hors norme.	Julia Stein	Biographie	9780000000008	https://picsum.photos/seed/book-008/400/600	456	2014-04-03	fr	seed-008	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-7745a741-00eb-45be-9ce9-ba8eb3c912ae	Chroniques dArgile	Recit historique au coeur dune cite antique.	Yasmine Benali	Histoire	9780000000009	https://picsum.photos/seed/book-009/400/600	390	2013-09-30	fr	seed-009	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-869d4e32-9007-4e2a-a511-75418f511886	Coeur a Contretemps	Deux vies se croisent au mauvais moment.	Ana Ribeiro	Romance	9780000000010	https://picsum.photos/seed/book-010/400/600	320	2022-02-14	fr	seed-010	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-8cd33fa4-1406-4398-894c-06de19cc0a16	Le Signal du Large	Un message radio venu de nulle part.	Thomas Keller	Thriller	9780000000011	https://picsum.photos/seed/book-011/400/600	352	2020-01-19	fr	seed-011	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+7745a741-00eb-45be-9ce9-ba8eb3c912ae	Chroniques dArgile	Recit historique au coeur dune cite antique.	Yasmine Benali	Roman	9780000000009	https://picsum.photos/seed/book-009/400/600	390	2013-09-30	fr	seed-009	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+869d4e32-9007-4e2a-a511-75418f511886	Coeur a Contretemps	Deux vies se croisent au mauvais moment.	Ana Ribeiro	Roman	9780000000010	https://picsum.photos/seed/book-010/400/600	320	2022-02-14	fr	seed-010	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+8cd33fa4-1406-4398-894c-06de19cc0a16	Le Signal du Large	Un message radio venu de nulle part.	Thomas Keller	Roman	9780000000011	https://picsum.photos/seed/book-011/400/600	352	2020-01-19	fr	seed-011	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 c7703687-edb9-4267-a927-ba4280c3268c	LArchive des Jours	Un roman sur la memoire et les choix.	Camille Durand	Roman	9780000000012	https://picsum.photos/seed/book-012/400/600	438	2012-05-07	fr	seed-012	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-1cd1d31e-63a7-460b-99c5-79b1727f3c3d	Neo-Lyon	Cyber-polar dans une metropole hyperconnectee.	Elena Carter	Science-Fiction	9780000000013	https://picsum.photos/seed/book-013/400/600	310	2023-07-01	en	seed-013	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-e03ca950-09cf-44e6-b886-74d91081db16	Le Dossier Harfang	Une affaire classee reouverte apres dix ans.	Hugo Lemaire	Polar	9780000000014	https://picsum.photos/seed/book-014/400/600	376	2019-12-05	fr	seed-014	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-65b83bcb-ef9b-4195-81bd-cfe05510d00d	Les Portes du Sommeil	Quand les reves deviennent des lieux.	Sarah Nguyen	Fantastique	9780000000015	https://picsum.photos/seed/book-015/400/600	272	2016-03-23	fr	seed-015	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-d4088be1-96d7-47bf-95af-fb91dff0adda	Escales et Silences	Petites histoires glanees en chemin.	Lina Moreau	Voyage	9780000000016	https://picsum.photos/seed/book-016/400/600	216	2011-08-16	fr	seed-016	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-de21af8f-e017-4263-b1f1-42f24036c584	Penser le Travail	Reflexions sur le sens et la valeur.	Marc Delcourt	Philosophie	9780000000017	https://picsum.photos/seed/book-017/400/600	224	2020-09-09	fr	seed-017	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+1cd1d31e-63a7-460b-99c5-79b1727f3c3d	Neo-Lyon	Cyber-polar dans une metropole hyperconnectee.	Elena Carter	Roman	9780000000013	https://picsum.photos/seed/book-013/400/600	310	2023-07-01	en	seed-013	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+e03ca950-09cf-44e6-b886-74d91081db16	Le Dossier Harfang	Une affaire classee reouverte apres dix ans.	Hugo Lemaire	Roman	9780000000014	https://picsum.photos/seed/book-014/400/600	376	2019-12-05	fr	seed-014	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+65b83bcb-ef9b-4195-81bd-cfe05510d00d	Les Portes du Sommeil	Quand les reves deviennent des lieux.	Sarah Nguyen	Roman	9780000000015	https://picsum.photos/seed/book-015/400/600	272	2016-03-23	fr	seed-015	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+d4088be1-96d7-47bf-95af-fb91dff0adda	Escales et Silences	Petites histoires glanees en chemin.	Lina Moreau	Essai	9780000000016	https://picsum.photos/seed/book-016/400/600	216	2011-08-16	fr	seed-016	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+de21af8f-e017-4263-b1f1-42f24036c584	Penser le Travail	Reflexions sur le sens et la valeur.	Marc Delcourt	Essai	9780000000017	https://picsum.photos/seed/book-017/400/600	224	2020-09-09	fr	seed-017	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 f644c59a-553f-4624-8245-ec3559a8d748	Une Vie en Notes	Le parcours dune artiste inconnue du grand public.	Julia Stein	Biographie	9780000000018	https://picsum.photos/seed/book-018/400/600	408	2018-02-28	fr	seed-018	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-ade1bcee-930e-4431-bcf6-5c21ae1add21	Les Annees du Fleuve	Saga historique le long dun grand cours deau.	Yasmine Benali	Histoire	9780000000019	https://picsum.photos/seed/book-019/400/600	512	2010-10-20	fr	seed-019	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-52581119-7e85-43b0-9db0-93e658d1cc04	Distance Minime	Romance douce-amere et lettres non envoyees.	Ana Ribeiro	Romance	9780000000020	https://picsum.photos/seed/book-020/400/600	288	2017-02-11	fr	seed-020	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-05a3c91c-d9f0-4b95-b1ff-32a96c792e60	Les Taches de Lumiere	Un photographe decouvre un motif inquietant.	Nicolas Martin	Thriller	9780000000021	https://picsum.photos/seed/book-021/400/600	344	2015-11-17	fr	seed-021	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+ade1bcee-930e-4431-bcf6-5c21ae1add21	Les Annees du Fleuve	Saga historique le long dun grand cours deau.	Yasmine Benali	Roman	9780000000019	https://picsum.photos/seed/book-019/400/600	512	2010-10-20	fr	seed-019	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+52581119-7e85-43b0-9db0-93e658d1cc04	Distance Minime	Romance douce-amere et lettres non envoyees.	Ana Ribeiro	Roman	9780000000020	https://picsum.photos/seed/book-020/400/600	288	2017-02-11	fr	seed-020	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+05a3c91c-d9f0-4b95-b1ff-32a96c792e60	Les Taches de Lumiere	Un photographe decouvre un motif inquietant.	Nicolas Martin	Roman	9780000000021	https://picsum.photos/seed/book-021/400/600	344	2015-11-17	fr	seed-021	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 b2d20571-3c52-4ea1-8c0a-7cb8b01649b1	Le Jardin des Heures	Un roman sur la transmission et les secrets.	Camille Durand	Roman	9780000000022	https://picsum.photos/seed/book-022/400/600	396	2021-04-12	fr	seed-022	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-93108596-cc65-4147-9ac9-0de8a6c0d04d	Station Aurore	Une colonie lointaine et un hiver sans fin.	Elena Carter	Science-Fiction	9780000000023	https://picsum.photos/seed/book-023/400/600	332	2018-06-06	en	seed-023	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-1f02c589-7c12-4dc2-afdf-baddb2714ef7	La Rue des Corbeaux	Un inspecteur suit une piste trop personnelle.	Hugo Lemaire	Polar	9780000000024	https://picsum.photos/seed/book-024/400/600	368	2014-09-01	fr	seed-024	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-67fa4cf2-fbe5-4882-98ad-eaab30c43e4b	Le Pacte des Brumes	Une foret vivante garde ses propres lois.	Sarah Nguyen	Fantastique	9780000000025	https://picsum.photos/seed/book-025/400/600	301	2022-10-03	fr	seed-025	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-fed8d371-7f80-4ddf-8b4b-9698899c641f	Carnet des Deux Rives	Voyager pour comprendre ce qui manque.	Lina Moreau	Voyage	9780000000026	https://picsum.photos/seed/book-026/400/600	260	2019-05-25	fr	seed-026	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-d2d8fb19-ec0c-4b4b-a7f7-e6b480a8cf88	La Joie de Douter	Apprendre a questionner sans se perdre.	Marc Delcourt	Philosophie	9780000000027	https://picsum.photos/seed/book-027/400/600	176	2013-03-03	fr	seed-027	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+93108596-cc65-4147-9ac9-0de8a6c0d04d	Station Aurore	Une colonie lointaine et un hiver sans fin.	Elena Carter	Roman	9780000000023	https://picsum.photos/seed/book-023/400/600	332	2018-06-06	en	seed-023	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+1f02c589-7c12-4dc2-afdf-baddb2714ef7	La Rue des Corbeaux	Un inspecteur suit une piste trop personnelle.	Hugo Lemaire	Roman	9780000000024	https://picsum.photos/seed/book-024/400/600	368	2014-09-01	fr	seed-024	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+67fa4cf2-fbe5-4882-98ad-eaab30c43e4b	Le Pacte des Brumes	Une foret vivante garde ses propres lois.	Sarah Nguyen	Roman	9780000000025	https://picsum.photos/seed/book-025/400/600	301	2022-10-03	fr	seed-025	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+fed8d371-7f80-4ddf-8b4b-9698899c641f	Carnet des Deux Rives	Voyager pour comprendre ce qui manque.	Lina Moreau	Essai	9780000000026	https://picsum.photos/seed/book-026/400/600	260	2019-05-25	fr	seed-026	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+d2d8fb19-ec0c-4b4b-a7f7-e6b480a8cf88	La Joie de Douter	Apprendre a questionner sans se perdre.	Marc Delcourt	Essai	9780000000027	https://picsum.photos/seed/book-027/400/600	176	2013-03-03	fr	seed-027	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 b0bf3ffe-ac8e-4f95-bfb5-61d9453a15b7	Portrait dune Saisonnier	Recit biographique dune vie de labeur.	Julia Stein	Biographie	9780000000028	https://picsum.photos/seed/book-028/400/600	372	2016-12-12	fr	seed-028	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-0cdedd1e-10b9-4ba8-8674-ddfa837e6d23	Cites et Couronnes	Histoire dune dynastie oubliee.	Yasmine Benali	Histoire	9780000000029	https://picsum.photos/seed/book-029/400/600	448	2012-02-02	fr	seed-029	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-612b83b4-dc24-4960-890e-ae5770b05744	Nos Deux Horizons	Rencontre inattendue et choix difficiles.	Ana Ribeiro	Romance	9780000000030	https://picsum.photos/seed/book-030/400/600	336	2020-02-29	fr	seed-030	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-b7de4e0a-6b96-4c5d-b9e0-9f1131bb6aaf	Algorithmes Simples	Bases pratiques pour mieux coder au quotidien.	Pierre Lambert	Développement	9780000000031	https://picsum.photos/seed/book-031/400/600	290	2021-09-15	fr	seed-031	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-8e0b9a77-d923-491d-8b3e-9cc0a9861b63	Architecture Web Moderne	Construire des applis robustes et evolutives.	Claire Petit	Développement	9780000000032	https://picsum.photos/seed/book-032/400/600	420	2022-05-05	fr	seed-032	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-798cb706-40c8-4c04-b36e-1ac3829fb13d	Le Dernier Indice	Une course contre la montre entre deux villes.	Thomas Keller	Thriller	9780000000033	https://picsum.photos/seed/book-033/400/600	328	2017-11-11	fr	seed-033	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+0cdedd1e-10b9-4ba8-8674-ddfa837e6d23	Cites et Couronnes	Histoire dune dynastie oubliee.	Yasmine Benali	Roman	9780000000029	https://picsum.photos/seed/book-029/400/600	448	2012-02-02	fr	seed-029	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+612b83b4-dc24-4960-890e-ae5770b05744	Nos Deux Horizons	Rencontre inattendue et choix difficiles.	Ana Ribeiro	Roman	9780000000030	https://picsum.photos/seed/book-030/400/600	336	2020-02-29	fr	seed-030	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+b7de4e0a-6b96-4c5d-b9e0-9f1131bb6aaf	Algorithmes Simples	Bases pratiques pour mieux coder au quotidien.	Pierre Lambert	Essai	9780000000031	https://picsum.photos/seed/book-031/400/600	290	2021-09-15	fr	seed-031	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+8e0b9a77-d923-491d-8b3e-9cc0a9861b63	Architecture Web Moderne	Construire des applis robustes et evolutives.	Claire Petit	Essai	9780000000032	https://picsum.photos/seed/book-032/400/600	420	2022-05-05	fr	seed-032	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+798cb706-40c8-4c04-b36e-1ac3829fb13d	Le Dernier Indice	Une course contre la montre entre deux villes.	Thomas Keller	Roman	9780000000033	https://picsum.photos/seed/book-033/400/600	328	2017-11-11	fr	seed-033	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 0a75b504-9805-4501-8b69-1211e35a9e64	La Chambre 204	Un roman intimiste sur le hasard.	Nicolas Martin	Roman	9780000000034	https://picsum.photos/seed/book-034/400/600	305	2011-01-20	fr	seed-034	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-44cc1d89-5abe-4d08-a070-b98cfb3c3b75	Les Pionniers de Mars	Mission de survie et decouvertes etranges.	Elena Carter	Science-Fiction	9780000000035	https://picsum.photos/seed/book-035/400/600	360	2015-07-07	en	seed-035	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-1d470d08-43dc-44ee-8c7a-ae6209728929	Le Code du Renard	Enquete et fausses pistes dans les archives.	Hugo Lemaire	Polar	9780000000036	https://picsum.photos/seed/book-036/400/600	392	2023-03-13	fr	seed-036	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-ef272f50-a60f-4136-adb3-32ca45676197	La Tour des Signes	Un grimoire ouvre des portes dangereuses.	Sarah Nguyen	Fantastique	9780000000037	https://picsum.photos/seed/book-037/400/600	278	2019-10-31	fr	seed-037	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-b5c0ee3a-327a-40cb-bbaf-d7f9f6292f0d	Au Bout des Routes	Recit de voyage en trains et detours.	Lina Moreau	Voyage	9780000000038	https://picsum.photos/seed/book-038/400/600	230	2014-06-01	fr	seed-038	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-0cf354fd-3135-46dc-9085-dd767dc532b5	Le Sens du Vrai	Reperes philosophiques sur la verite.	Marc Delcourt	Philosophie	9780000000039	https://picsum.photos/seed/book-039/400/600	208	2018-08-08	fr	seed-039	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+44cc1d89-5abe-4d08-a070-b98cfb3c3b75	Les Pionniers de Mars	Mission de survie et decouvertes etranges.	Elena Carter	Roman	9780000000035	https://picsum.photos/seed/book-035/400/600	360	2015-07-07	en	seed-035	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+1d470d08-43dc-44ee-8c7a-ae6209728929	Le Code du Renard	Enquete et fausses pistes dans les archives.	Hugo Lemaire	Roman	9780000000036	https://picsum.photos/seed/book-036/400/600	392	2023-03-13	fr	seed-036	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+ef272f50-a60f-4136-adb3-32ca45676197	La Tour des Signes	Un grimoire ouvre des portes dangereuses.	Sarah Nguyen	Roman	9780000000037	https://picsum.photos/seed/book-037/400/600	278	2019-10-31	fr	seed-037	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+b5c0ee3a-327a-40cb-bbaf-d7f9f6292f0d	Au Bout des Routes	Recit de voyage en trains et detours.	Lina Moreau	Essai	9780000000038	https://picsum.photos/seed/book-038/400/600	230	2014-06-01	fr	seed-038	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+0cf354fd-3135-46dc-9085-dd767dc532b5	Le Sens du Vrai	Reperes philosophiques sur la verite.	Marc Delcourt	Essai	9780000000039	https://picsum.photos/seed/book-039/400/600	208	2018-08-08	fr	seed-039	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 b05af3b8-11d1-4881-9ba0-0905c5e21928	Une Histoire de Courage	Biographie dune personne ordinaire devenue essentielle.	Julia Stein	Biographie	9780000000040	https://picsum.photos/seed/book-040/400/600	410	2020-12-01	fr	seed-040	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-7450c110-34d4-436b-8c38-a043dd80a779	Chroniques du Royaume	Une fresque historique en cinq actes.	Yasmine Benali	Histoire	9780000000041	https://picsum.photos/seed/book-041/400/600	530	2009-04-04	fr	seed-041	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-c4d3fa1b-1a98-4423-9795-c8f49626c13d	Planche et Encre	Recueil illustre au ton leger et tendre.	Kenji Sato	BD / Manga	9780000000042	https://picsum.photos/seed/book-042/400/600	192	2021-03-03	fr	seed-042	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-25915324-78de-46d6-9f56-e510482a7613	Nuit de Velours	Romance moderne et dialogues cinglants.	Ana Ribeiro	Romance	9780000000043	https://picsum.photos/seed/book-043/400/600	312	2021-02-14	fr	seed-043	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-23c3f739-801f-450b-9479-45e96f954154	Le Revers du Miroir	Thriller psychologique en huis clos.	Thomas Keller	Thriller	9780000000044	https://picsum.photos/seed/book-044/400/600	340	2016-10-20	fr	seed-044	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+7450c110-34d4-436b-8c38-a043dd80a779	Chroniques du Royaume	Une fresque historique en cinq actes.	Yasmine Benali	Roman	9780000000041	https://picsum.photos/seed/book-041/400/600	530	2009-04-04	fr	seed-041	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+c4d3fa1b-1a98-4423-9795-c8f49626c13d	Planche et Encre	Recueil illustre au ton leger et tendre.	Kenji Sato	BD	9780000000042	https://picsum.photos/seed/book-042/400/600	192	2021-03-03	fr	seed-042	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+25915324-78de-46d6-9f56-e510482a7613	Nuit de Velours	Romance moderne et dialogues cinglants.	Ana Ribeiro	Roman	9780000000043	https://picsum.photos/seed/book-043/400/600	312	2021-02-14	fr	seed-043	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+23c3f739-801f-450b-9479-45e96f954154	Le Revers du Miroir	Thriller psychologique en huis clos.	Thomas Keller	Roman	9780000000044	https://picsum.photos/seed/book-044/400/600	340	2016-10-20	fr	seed-044	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
 5ade6128-6d8c-4d6b-83f6-0abb5ba666de	Les Lignes du Temps	Roman sur les occasions manquees et reprises.	Camille Durand	Roman	9780000000045	https://picsum.photos/seed/book-045/400/600	402	2018-01-01	fr	seed-045	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-fbbbbd8d-0bb5-4b3d-903f-d49c8cfd30cd	Vecteur Zero	Science-fiction dure et exploration orbitale.	Elena Carter	Science-Fiction	9780000000046	https://picsum.photos/seed/book-046/400/600	298	2020-07-17	en	seed-046	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-ff427574-a640-422e-8abd-17fb11d48385	Le Passage du Nord	Polar atmospherique dans une ville portuaire.	Hugo Lemaire	Polar	9780000000047	https://picsum.photos/seed/book-047/400/600	374	2012-11-15	fr	seed-047	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-9909c481-e9c1-4ce0-b304-03fb12222054	Le Cercle des Lueurs	Fantastique doux avec une menace diffuse.	Sarah Nguyen	Fantastique	9780000000048	https://picsum.photos/seed/book-048/400/600	265	2017-09-09	fr	seed-048	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-5e61a18c-bd15-4ae9-aad8-f257b98feccf	Routes Interieures	Voyage et introspection au fil des paysages.	Lina Moreau	Voyage	9780000000049	https://picsum.photos/seed/book-049/400/600	248	2013-05-18	fr	seed-049	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
-0914a67a-9c5c-4e12-a53a-2966fac659bc	Pratique de la Priorisation	Methodes concretes pour mieux organiser son temps.	Pierre Lambert	Développement	9780000000050	https://picsum.photos/seed/book-050/400/600	260	2024-01-10	fr	seed-050	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+fbbbbd8d-0bb5-4b3d-903f-d49c8cfd30cd	Vecteur Zero	Science-fiction dure et exploration orbitale.	Elena Carter	Roman	9780000000046	https://picsum.photos/seed/book-046/400/600	298	2020-07-17	en	seed-046	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+ff427574-a640-422e-8abd-17fb11d48385	Le Passage du Nord	Polar atmospherique dans une ville portuaire.	Hugo Lemaire	Roman	9780000000047	https://picsum.photos/seed/book-047/400/600	374	2012-11-15	fr	seed-047	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+9909c481-e9c1-4ce0-b304-03fb12222054	Le Cercle des Lueurs	Fantastique doux avec une menace diffuse.	Sarah Nguyen	Roman	9780000000048	https://picsum.photos/seed/book-048/400/600	265	2017-09-09	fr	seed-048	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+5e61a18c-bd15-4ae9-aad8-f257b98feccf	Routes Interieures	Voyage et introspection au fil des paysages.	Lina Moreau	Essai	9780000000049	https://picsum.photos/seed/book-049/400/600	248	2013-05-18	fr	seed-049	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+0914a67a-9c5c-4e12-a53a-2966fac659bc	Pratique de la Priorisation	Methodes concretes pour mieux organiser son temps.	Pierre Lambert	Essai	9780000000050	https://picsum.photos/seed/book-050/400/600	260	2024-01-10	fr	seed-050	seed	2026-04-26 10:07:00.450147+00	2026-04-26 10:08:31.347257+00
+\.
+
+--
+-- Data for Name: genres; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.genres (id, name, type) FROM stdin;
+11111111-0000-0000-0000-000000000001	Thriller	Roman
+11111111-0000-0000-0000-000000000002	Science-Fiction	Roman
+11111111-0000-0000-0000-000000000003	Policier	Roman
+11111111-0000-0000-0000-000000000004	Fantastique	Roman
+11111111-0000-0000-0000-000000000005	Romance	Roman
+11111111-0000-0000-0000-000000000006	Historique	Roman
+11111111-0000-0000-0000-000000000007	Philosophie	Roman
+11111111-0000-0000-0000-000000000008	Voyage	Essai
+11111111-0000-0000-0000-000000000009	Développement personnel	Essai
+11111111-0000-0000-0000-000000000010	Sciences	Essai
+11111111-0000-0000-0000-000000000011	Politique	Essai
+11111111-0000-0000-0000-000000000012	Shounen	Manga
+11111111-0000-0000-0000-000000000013	Shojo	Manga
+11111111-0000-0000-0000-000000000014	Seinen	Manga
+11111111-0000-0000-0000-000000000015	Isekai	Manga
+11111111-0000-0000-0000-000000000016	Aventure	BD
+11111111-0000-0000-0000-000000000017	Humour	BD
+11111111-0000-0000-0000-000000000018	Fantastique	BD
+11111111-0000-0000-0000-000000000019	Policier	BD
+11111111-0000-0000-0000-000000000020	Biographie	Biographie
+\.
+
+
+--
+-- Data for Name: book_genres; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.book_genres (book_id, genre_id) FROM stdin;
+f2d4d94f-b688-4218-ab7e-4d8cb903bf8a	11111111-0000-0000-0000-000000000001
+8cd33fa4-1406-4398-894c-06de19cc0a16	11111111-0000-0000-0000-000000000001
+798cb706-40c8-4c04-b36e-1ac3829fb13d	11111111-0000-0000-0000-000000000001
+23c3f739-801f-450b-9479-45e96f954154	11111111-0000-0000-0000-000000000001
+05a3c91c-d9f0-4b95-b1ff-32a96c792e60	11111111-0000-0000-0000-000000000001
+732b6b9e-4c52-4703-8b5b-2077c7d7e479	11111111-0000-0000-0000-000000000002
+1cd1d31e-63a7-460b-99c5-79b1727f3c3d	11111111-0000-0000-0000-000000000002
+93108596-cc65-4147-9ac9-0de8a6c0d04d	11111111-0000-0000-0000-000000000002
+44cc1d89-5abe-4d08-a070-b98cfb3c3b75	11111111-0000-0000-0000-000000000002
+fbbbbd8d-0bb5-4b3d-903f-d49c8cfd30cd	11111111-0000-0000-0000-000000000002
+7addf711-fe13-444b-9f99-0057ffb794ce	11111111-0000-0000-0000-000000000003
+e03ca950-09cf-44e6-b886-74d91081db16	11111111-0000-0000-0000-000000000003
+1f02c589-7c12-4dc2-afdf-baddb2714ef7	11111111-0000-0000-0000-000000000003
+1d470d08-43dc-44ee-8c7a-ae6209728929	11111111-0000-0000-0000-000000000003
+ff427574-a640-422e-8abd-17fb11d48385	11111111-0000-0000-0000-000000000003
+65fff8d2-50b6-4083-a573-a7079f64b24a	11111111-0000-0000-0000-000000000004
+65b83bcb-ef9b-4195-81bd-cfe05510d00d	11111111-0000-0000-0000-000000000004
+67fa4cf2-fbe5-4882-98ad-eaab30c43e4b	11111111-0000-0000-0000-000000000004
+ef272f50-a60f-4136-adb3-32ca45676197	11111111-0000-0000-0000-000000000004
+9909c481-e9c1-4ce0-b304-03fb12222054	11111111-0000-0000-0000-000000000004
+869d4e32-9007-4e2a-a511-75418f511886	11111111-0000-0000-0000-000000000005
+52581119-7e85-43b0-9db0-93e658d1cc04	11111111-0000-0000-0000-000000000005
+612b83b4-dc24-4960-890e-ae5770b05744	11111111-0000-0000-0000-000000000005
+25915324-78de-46d6-9f56-e510482a7613	11111111-0000-0000-0000-000000000005
+7745a741-00eb-45be-9ce9-ba8eb3c912ae	11111111-0000-0000-0000-000000000006
+ade1bcee-930e-4431-bcf6-5c21ae1add21	11111111-0000-0000-0000-000000000006
+0cdedd1e-10b9-4ba8-8674-ddfa837e6d23	11111111-0000-0000-0000-000000000006
+7450c110-34d4-436b-8c38-a043dd80a779	11111111-0000-0000-0000-000000000006
+cf209f17-c27b-483e-b238-c7da52808846	11111111-0000-0000-0000-000000000007
+de21af8f-e017-4263-b1f1-42f24036c584	11111111-0000-0000-0000-000000000007
+d2d8fb19-ec0c-4b4b-a7f7-e6b480a8cf88	11111111-0000-0000-0000-000000000007
+0cf354fd-3135-46dc-9085-dd767dc532b5	11111111-0000-0000-0000-000000000007
+4030c9c3-7288-4200-94a8-b404caea387b	11111111-0000-0000-0000-000000000008
+d4088be1-96d7-47bf-95af-fb91dff0adda	11111111-0000-0000-0000-000000000008
+fed8d371-7f80-4ddf-8b4b-9698899c641f	11111111-0000-0000-0000-000000000008
+b5c0ee3a-327a-40cb-bbaf-d7f9f6292f0d	11111111-0000-0000-0000-000000000008
+5e61a18c-bd15-4ae9-aad8-f257b98feccf	11111111-0000-0000-0000-000000000008
+b7de4e0a-6b96-4c5d-b9e0-9f1131bb6aaf	11111111-0000-0000-0000-000000000009
+8e0b9a77-d923-491d-8b3e-9cc0a9861b63	11111111-0000-0000-0000-000000000009
+0914a67a-9c5c-4e12-a53a-2966fac659bc	11111111-0000-0000-0000-000000000009
+7ee70f51-e7c6-49cd-b782-c2c875711589	11111111-0000-0000-0000-000000000006
+c7703687-edb9-4267-a927-ba4280c3268c	11111111-0000-0000-0000-000000000005
+b2d20571-3c52-4ea1-8c0a-7cb8b01649b1	11111111-0000-0000-0000-000000000005
+5ade6128-6d8c-4d6b-83f6-0abb5ba666de	11111111-0000-0000-0000-000000000005
+0a75b504-9805-4501-8b69-1211e35a9e64	11111111-0000-0000-0000-000000000005
+c249b1a4-0073-457e-97fc-c98de9dcc085	11111111-0000-0000-0000-000000000020
+f644c59a-553f-4624-8245-ec3559a8d748	11111111-0000-0000-0000-000000000020
+b0bf3ffe-ac8e-4f95-bfb5-61d9453a15b7	11111111-0000-0000-0000-000000000020
+b05af3b8-11d1-4881-9ba0-0905c5e21928	11111111-0000-0000-0000-000000000020
+c4d3fa1b-1a98-4423-9795-c8f49626c13d	11111111-0000-0000-0000-000000000017
 \.
 
 
@@ -940,7 +1017,7 @@ COPY public.user_events_2026_q1 (id, user_id, event_type, book_id, metadata, occ
 --
 
 COPY public.users (id, email, password_hash, nom, prenom, numero_tele, photo_url, bio, genres_preferes, objectif_annuel, oauth_provider, oauth_id, is_active, created_at, updated_at, last_login_at) FROM stdin;
-51e451e3-2f58-400b-8ba1-2b0038f81f46	m.aitelhachmi7790@uca.ac.ma	Lhsm8702	EL HACHMI	Mouad	\N	\N	\N	{Roman,Science-Fiction,Thriller,Histoire,Philosophie}	12	\N	\N	t	2026-04-26 10:01:25.796416+00	2026-04-26 10:01:47.111888+00	\N
+51e451e3-2f58-400b-8ba1-2b0038f81f46	m.aitelhachmi7790@uca.ac.ma	$2b$12$ldSYbJzm.5fXXTGXUoh3OOHlhk4LtQMfQfAuSuMsSoo30v7ZmYSem	EL HACHMI	Mouad	\N	\N	\N	{Roman,Science-Fiction,Thriller,Histoire,Philosophie}	12	\N	\N	t	2026-04-26 10:01:25.796416+00	2026-04-26 10:01:47.111888+00	\N
 \.
 
 
@@ -1095,13 +1172,6 @@ ALTER TABLE ONLY public.users
 
 CREATE INDEX idx_books_auteur ON public.books USING btree (auteur);
 
-
---
--- TOC entry 3524 (class 1259 OID 16818)
--- Name: idx_books_genre; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_books_genre ON public.books USING btree (genre);
 
 
 --
@@ -1536,22 +1606,6 @@ ALTER TABLE ONLY public.book_comments
 
 ALTER TABLE ONLY public.book_comments
     ADD CONSTRAINT book_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
---
--- TOC entry 3607 (class 2606 OID 16980)
--- Name: book_genres book_genres_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.book_genres
-    ADD CONSTRAINT book_genres_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE CASCADE;
-
---
--- TOC entry 3608 (class 2606 OID 16981)
--- Name: book_genres book_genres_genre_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.book_genres
-    ADD CONSTRAINT book_genres_genre_id_fkey FOREIGN KEY (genre_id) REFERENCES public.genres(id) ON DELETE CASCADE;
 
 
 --

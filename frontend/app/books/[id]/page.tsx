@@ -36,7 +36,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   const [bookRes, libraryRes] = await Promise.all([
     fetch(`${apiUrl}/books/${id}`, { cache: "no-store" }),
     user
-      ? fetch(`${apiUrl}/users/${user.user_id}/library`, { cache: "no-store" })
+      ? fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" })
       : Promise.resolve(new Response("[]")),
   ]);
 

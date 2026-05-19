@@ -1,9 +1,4 @@
 "use client";
-// ============================================================
-// EditBookForm.tsx — Formulaire de modification d'un livre
-// "use client" car on utilise useState, onChange, onSubmit
-// Ce composant reçoit les données du livre en props (pré-remplissage)
-// ============================================================
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -12,6 +7,7 @@ type BookFormState = {
   title: string;
   description: string;
   auteur: string;
+  type: string;
   genre: string;
   cover_url: string;
   nb_pages: string;
@@ -19,24 +15,63 @@ type BookFormState = {
   langue: string;
 };
 
-// On reçoit le livre existant depuis le Server Component parent
 type Props = {
   bookId: string;
   initialData: BookFormState;
 };
 
+const BOOK_TYPES = ["Roman", "Manga", "BD", "Essai", "Biographie"];
+
+const GENRES_BY_TYPE: Record<string, { value: string; label: string }[]> = {
+  Roman: [
+    { value: "Thriller", label: "Thriller" },
+    { value: "Science-Fiction", label: "Science-Fiction" },
+    { value: "Policier", label: "Policier" },
+    { value: "Fantastique", label: "Fantastique" },
+    { value: "Romance", label: "Romance" },
+    { value: "Historique", label: "Historique" },
+    { value: "Philosophie", label: "Philosophie" },
+  ],
+  Manga: [
+    { value: "Shounen", label: "Shounen" },
+    { value: "Shojo", label: "Shojo" },
+    { value: "Seinen", label: "Seinen" },
+    { value: "Isekai", label: "Isekai" },
+  ],
+  BD: [
+    { value: "Aventure", label: "Aventure" },
+    { value: "Humour", label: "Humour" },
+    { value: "Fantastique", label: "Fantastique" },
+    { value: "Policier", label: "Policier" },
+    { value: "Comics US", label: "Comics US" },
+    { value: "Franco-Belge", label: "Franco-Belge" },
+  ],
+  Essai: [
+    { value: "Voyage", label: "Voyage" },
+    { value: "Développement personnel", label: "Développement personnel" },
+    { value: "Sciences", label: "Sciences" },
+    { value: "Politique", label: "Politique" },
+  ],
+  Biographie: [
+    { value: "Biographie", label: "Biographie" },
+  ],
+};
+
 export default function EditBookForm({ bookId, initialData }: Props) {
   const router = useRouter();
-
-  // On initialise le formulaire avec les données existantes du livre
   const [form, setForm] = useState<BookFormState>(initialData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Met à jour un seul champ du formulaire sans toucher aux autres
+  const genreOptions = GENRES_BY_TYPE[form.type] ?? [];
+
   const handleChange = (field: keyof BookFormState, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "type" ? { genre: "" } : {}),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,16 +82,20 @@ export default function EditBookForm({ bookId, initialData }: Props) {
       return;
     }
 
+    if (!form.type.trim()) {
+      setError("Le type est requis.");
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-      // On envoie TOUS les champs (PUT = remplacement complet)
-      // Les champs vides sont envoyés comme null pour ne pas écraser avec ""
       const payload = {
         title: form.title.trim(),
+        type: form.type.trim(),
         description: form.description.trim() || null,
         auteur: form.auteur.trim() || null,
         genre: form.genre.trim() || null,
@@ -66,7 +105,6 @@ export default function EditBookForm({ bookId, initialData }: Props) {
         langue: form.langue.trim() || null,
       };
 
-      // PUT /books/{bookId} → mise à jour du livre
       const res = await fetch(`${apiUrl}/books/${bookId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -74,7 +112,6 @@ export default function EditBookForm({ bookId, initialData }: Props) {
       });
 
       if (!res.ok) {
-        // On lit le message d'erreur réel du serveur pour faciliter le débogage
         const errorData = await res.json().catch(() => null);
         const message = errorData?.detail || `Erreur serveur (${res.status})`;
         throw new Error(message);
@@ -82,12 +119,10 @@ export default function EditBookForm({ bookId, initialData }: Props) {
 
       setSuccess(true);
 
-      // Retour vers la liste des livres après 1 seconde
       setTimeout(() => {
         router.push("/admin/books");
-        router.refresh(); // Force Next.js à re-fetcher les données
+        router.refresh();
       }, 1000);
-
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
@@ -97,22 +132,18 @@ export default function EditBookForm({ bookId, initialData }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-xl">
-
-      {/* MESSAGE DE SUCCÈS */}
       {success && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm font-medium">
-          ✅ Livre modifié avec succès ! Redirection en cours...
+          Livre modifie avec succes ! Redirection en cours...
         </div>
       )}
 
-      {/* MESSAGE D'ERREUR */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
-      {/* CHAMP : Titre (obligatoire) */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
         <input
@@ -126,21 +157,19 @@ export default function EditBookForm({ bookId, initialData }: Props) {
         />
       </div>
 
-      {/* CHAMP : Description */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
         <textarea
           value={form.description}
           onChange={(e) => handleChange("description", e.target.value)}
-          placeholder="Résumé du livre..."
+          placeholder="Resume du livre..."
           rows={4}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-vertical
                      focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
 
-      {/* LIGNE : Auteur + Genre côte à côte */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Auteur</label>
           <input
@@ -153,41 +182,38 @@ export default function EditBookForm({ bookId, initialData }: Props) {
           />
         </div>
         <div>
-          {/* 
-            CHAMP : Genre (Liste déroulante)
-            On force le choix parmi les catégories de la Navbar (en minuscules pour correspondre aux URLs)
-          */}
+          <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+          <select
+            value={form.type}
+            onChange={(e) => handleChange("type", e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+          >
+            <option value="" disabled>Selectionner un type</option>
+            {BOOK_TYPES.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
           <select
             value={form.genre}
             onChange={(e) => handleChange("genre", e.target.value)}
+            disabled={!form.type || genreOptions.length === 0}
+            required={genreOptions.length > 0}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
           >
-            <option value="" disabled>Sélectionner un genre</option>
-            <optgroup label="Romans">
-              <option value="science-fiction">Science-Fiction</option>
-              <option value="fantasy">Fantasy</option>
-              <option value="policier">Policier</option>
-            </optgroup>
-            <optgroup label="Mangas">
-              <option value="shonen">Shônen</option>
-              <option value="seinen">Seinen</option>
-              <option value="shojo">Shôjo</option>
-            </optgroup>
-            <optgroup label="BD">
-              <option value="comics">Comics US</option>
-              <option value="franco-belge">Franco-Belge</option>
-            </optgroup>
-            <optgroup label="Essais">
-              <option value="histoire">Histoire</option>
-              <option value="philosophie">Philosophie</option>
-            </optgroup>
+            <option value="" disabled>Selectionner un genre</option>
+            {genreOptions.map((genre) => (
+              <option key={genre.value} value={genre.value}>{genre.label}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* CHAMP : URL de couverture */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">URL de couverture</label>
         <input
@@ -198,18 +224,16 @@ export default function EditBookForm({ bookId, initialData }: Props) {
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
                      focus:outline-none focus:ring-2 focus:ring-gray-900"
         />
-        {/* Prévisualisation de la couverture si une URL est saisie */}
         {form.cover_url && (
           <img
             src={form.cover_url}
-            alt="Prévisualisation"
+            alt="Previsualisation"
             className="mt-2 h-32 w-auto rounded-lg border border-gray-200 object-cover"
             onError={(e) => (e.currentTarget.style.display = "none")}
           />
         )}
       </div>
 
-      {/* LIGNE : Nombre de pages + Date de publication + Langue */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Pages</label>
@@ -246,7 +270,6 @@ export default function EditBookForm({ bookId, initialData }: Props) {
         </div>
       </div>
 
-      {/* BOUTONS : Enregistrer + Annuler */}
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
@@ -255,10 +278,9 @@ export default function EditBookForm({ bookId, initialData }: Props) {
                      py-2.5 rounded-lg hover:bg-gray-700 transition-colors
                      disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? "Enregistrement..." : "💾 Enregistrer les modifications"}
+          {isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
         </button>
 
-        {/* Annuler → retour à la liste sans sauvegarder */}
         <button
           type="button"
           onClick={() => router.push("/admin/books")}

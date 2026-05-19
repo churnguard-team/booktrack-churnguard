@@ -15,7 +15,7 @@ class BookBase(BaseModel):
     title: str
     description: Optional[str] = None
     auteur: Optional[str] = None
-    type: Optional[str] = None
+    type: str
     genre: Optional[str] = None
     cover_url: Optional[str] = None
     nb_pages: Optional[int] = None

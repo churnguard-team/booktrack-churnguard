@@ -14,7 +14,6 @@ BOOK_FIELDS = {
     "description",
     "auteur",
     "type",
-    "genre",
     "cover_url",
     "nb_pages",
     "date_publication",
@@ -53,10 +52,7 @@ def resolve_book_genres(book: BookCreate, db: Session) -> list[Genre]:
 @router.post("/", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 def create_book(book: BookCreate, db: Session = Depends(get_db)):
     new_book = Book(**book.model_dump(include=BOOK_FIELDS))
-    resolved_genres = resolve_book_genres(book, db)
-    new_book.genres = resolved_genres
-    if not new_book.genre and resolved_genres:
-        new_book.genre = resolved_genres[0].name
+    new_book.genres = resolve_book_genres(book, db)
     db.add(new_book)
     db.commit()
     db.refresh(new_book)
@@ -93,19 +89,15 @@ def update_book(book_id: UUID, book: BookCreate, db: Session = Depends(get_db)):
     db_book = db.query(Book).filter(Book.id == book_id).first()
     if not db_book:
         raise HTTPException(status_code=404, detail="Livre non trouve")
-    db_book.title = book.title
-    db_book.description = book.description
-    db_book.auteur = book.auteur
-    db_book.type = book.type
-    db_book.genre = book.genre
-    db_book.cover_url = book.cover_url
-    db_book.nb_pages = book.nb_pages
+    db_book.title            = book.title
+    db_book.description      = book.description
+    db_book.auteur           = book.auteur
+    db_book.type             = book.type
+    db_book.cover_url        = book.cover_url
+    db_book.nb_pages         = book.nb_pages
     db_book.date_publication = book.date_publication
-    db_book.langue = book.langue
-    resolved_genres = resolve_book_genres(book, db)
-    db_book.genres = resolved_genres
-    if not db_book.genre and resolved_genres:
-        db_book.genre = resolved_genres[0].name
+    db_book.langue           = book.langue
+    db_book.genres           = resolve_book_genres(book, db)
     db.commit()
     db.refresh(db_book)
     return db_book

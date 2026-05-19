@@ -28,8 +28,7 @@ class Book(Base):
     title            = Column(String(500), nullable=False)
     description      = Column(Text)
     auteur           = Column(String(255))
-    type             = Column(String(100))
-    genre            = Column(String(100))
+    type             = Column(String(100), nullable=False)
     isbn             = Column(String(20))
     cover_url        = Column(Text)
     nb_pages         = Column(Integer)
@@ -37,11 +36,16 @@ class Book(Base):
     langue           = Column(String(50), default="fr")
     external_id      = Column(String(100))
     external_source  = Column(String(50))
-    # Colonnes temporelles
     created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
     updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
 
     genres = relationship("Genre", secondary=book_genres_table, lazy="joined")
+
+    @property
+    def genre(self):
+        if not self.genres:
+            return None
+        return self.genres[0].name
 
 
 class User(Base):

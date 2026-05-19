@@ -75,7 +75,7 @@ return (
                         key={book.book_id}
                         className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1"
                     >
-                        <Link href={`/user/books/${book.book_id}`}>
+                        <Link href={`/books/${book.book_id}`}>
                             {book.cover_url ? (
                                 <img src={book.cover_url} alt={book.title} className="w-full h-52 object-cover" />
                             ) : (

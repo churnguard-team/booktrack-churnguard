@@ -21,7 +21,7 @@ export default async function FavouritesPage() {
 
   // 2. Appeler TON API Backend pour récupérer sa bibliothèque complète
   const apiUrl = process.env.API_URL || "http://localhost:8000";
-  const res = await fetch(`${apiUrl}/users/${user.user_id}/library`, {
+  const res = await fetch(`${apiUrl}/users/${user.user_id}/library/`, {
     cache: "no-store",
   });
 
@@ -44,10 +44,12 @@ export default async function FavouritesPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "1.5rem" }}>
           {favourites.map((book) => (
-            <div
+            <a
               key={book.book_id}
+              href={`/books/${book.book_id}`}
               style={{
                 border: "1px solid #fca5a5",
+                textDecoration: "none",
                 borderRadius: "12px",
                 padding: "1.5rem",
                 backgroundColor: "#fff",
@@ -69,7 +71,7 @@ export default async function FavouritesPage() {
                 {book.status === "READ" && "✅ Lu"}
                 {book.status === "ABANDONED" && "⏸️ Abandonné"}
               </span>
-            </div>
+            </a>
           ))}
         </div>
       </div>

@@ -15,7 +15,7 @@ async function DashboardPage(){
 
     const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-    const res= await fetch(`${apiUrl}/users/${user.user_id}/library`,{cache:"no-store"})
+    const res= await fetch(`${apiUrl}/users/${user.user_id}/library/`,{cache:"no-store"})
 
 
     let booksLibrary= []
