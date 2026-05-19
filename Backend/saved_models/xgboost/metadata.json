@@ -1,0 +1,13 @@
+{
+  "algorithm": "XGBoost Fixed",
+  "trained_at": "2026-05-01T11:07:38.590843",
+  "best_iteration": 27,
+  "metrics": {
+    "accuracy": 0.801277501774308,
+    "precision": 0.6702898550724637,
+    "recall": 0.4946524064171123,
+    "f1": 0.5692307692307692,
+    "roc_auc": 0.8433193830892041
+  },
+  "shap_enabled": true
+}

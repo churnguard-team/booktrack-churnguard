@@ -1,6 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import books, users
+from routers.admin import books as admin_books
+from routers.admin import users as admin_users
+from routers import auth
+from routers.user import library
+from routers.user import profile  # Profil utilisateur (onboarding)
+from routers.user import comments  # Commentaires sur les livres
+from routers import auth_google    # Authentification Google OAuth
+from routers import scraper        # Web scraping — recherche de livres via Open Library / Google Books
+from routers import recommendations
+from routers import churn
+from routers import moderator
+from routers import dashboard
+from routers import n8n
+
 
 app = FastAPI(title="BookTrack AI", version="1.0.0")
 
@@ -12,8 +25,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(books.router)
-app.include_router(users.router)
+app.include_router(admin_books.router)
+app.include_router(admin_users.router)
+app.include_router(auth.router)
+app.include_router(library.router)
+app.include_router(profile.router)   # PATCH /users/{id}/profile → sauvegarde genres
+app.include_router(comments.router)  # GET/POST /books/{id}/comments → commentaires
+app.include_router(auth_google.router)  # POST /auth/google → connexion OAuth Google
+app.include_router(scraper.router)       # GET /scraper/search?q=... → web scraping
+app.include_router(recommendations.router)
+app.include_router(churn.router)
+app.include_router(moderator.router)
+app.include_router(dashboard.router)
+app.include_router(n8n.router)
+
 
 @app.get("/")
 def root():

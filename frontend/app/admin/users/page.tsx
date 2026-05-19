@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DeleteUserButton from "./DeleteUserButton";
+import Navbar from "@/app/components/Navbar";
 
 type UserItem = {
   id: string;
@@ -28,6 +29,7 @@ export default async function UsersPage() {
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+      <Navbar />
       <h1>Gestion des utilisateurs</h1>
       <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1rem" }}>
         <Link
@@ -85,7 +87,31 @@ export default async function UsersPage() {
             <p style={{ color: user.is_active ? "#0f766e" : "#b91c1c", margin: 0 }}>
               {user.is_active ? "Actif" : "Inactif"}
             </p>
-            <DeleteUserButton userId={user.id} />
+
+            {/* Boutons Modifier + Supprimer sur la même ligne */}
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+              {/* Modifier → redirige vers la page d'édition */}
+              <Link
+                href={`/admin/users/${user.id}/edit`}
+                style={{
+                  flex: 1, textAlign: "center",
+                  padding: "0.45rem 0.75rem",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  color: "#374151",
+                  textDecoration: "none",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                }}
+              >
+                ✏️ Modifier
+              </Link>
+
+              {/* Supprimer (Client Component existant) */}
+              <div style={{ flex: 1 }}>
+                <DeleteUserButton userId={user.id} />
+              </div>
+            </div>
           </div>
         ))}
       </div>

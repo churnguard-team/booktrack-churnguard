@@ -5,3 +5,8 @@ psycopg2-binary
 alembic
 python-dotenv
 pydantic
+passlib[bcrypt]
+httpx
+joblib
+numpy
+scikit-learn

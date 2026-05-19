@@ -1,9 +1,11 @@
 import Link from "next/link";
 import AddUserForm from "../AddUserForm";
+import Navbar from "@/app/components/Navbar";
 
 export default function AddUserPage() {
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+      <Navbar />
       <h1>Nouveau utilisateur</h1>
       <Link
         href="/admin/users"
