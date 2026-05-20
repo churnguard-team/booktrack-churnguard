@@ -1,14 +1,16 @@
+import os
 from typing import Any, Dict
 
 from ..inference import ChurnPredictor
 
+DEFAULT_CHURN_MODEL = os.getenv("CHURN_MODEL_NAME", "xgboost")
 _PREDICTOR: ChurnPredictor | None = None
 
 
 def get_predictor() -> ChurnPredictor:
     global _PREDICTOR
     if _PREDICTOR is None:
-        _PREDICTOR = ChurnPredictor(model_name="random_forest")
+        _PREDICTOR = ChurnPredictor(model_name=DEFAULT_CHURN_MODEL)
     return _PREDICTOR
 
 

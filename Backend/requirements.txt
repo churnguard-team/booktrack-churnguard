@@ -10,3 +10,4 @@ httpx
 joblib
 numpy
 scikit-learn
+apscheduler

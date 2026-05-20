@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ml_models.churn import predict_churn, get_stats_for_dashboard
 from database import get_db
+from services.churn_service import get_churn_history, get_high_risk_users
 from services.recommendation_service import (
     get_recommendation_stats,
     recommend_for_user,
@@ -20,6 +21,16 @@ def get_churn_stats():
 @router.post("/churn/predict")
 def predict_user_churn(user_features: dict):
     return predict_churn(user_features)
+
+
+@router.get("/churn/history")
+def get_churn_history_endpoint(db: Session = Depends(get_db), days: int = 30):
+    return get_churn_history(db, days)
+
+
+@router.get("/churn/high-risk")
+def get_high_risk_users_endpoint(db: Session = Depends(get_db), limit: int = 10):
+    return get_high_risk_users(db, limit)
 
 
 @router.get("/dashboard-summary")
