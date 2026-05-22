@@ -1,5 +1,6 @@
-from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey, Table
+from sqlalchemy import Boolean, Column, String, Integer, Text, Date, TIMESTAMP, ForeignKey, Table, Numeric
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy import Enum as PgEnum
 from sqlalchemy.orm import relationship
 from database import Base
 import uuid
@@ -111,6 +112,26 @@ class UserBook(Base):
     
     created_at       = Column(TIMESTAMP(timezone=True), default=datetime.now)
     updated_at       = Column(TIMESTAMP(timezone=True), default=datetime.now, onupdate=datetime.now)
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id                 = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id            = Column(UUID(as_uuid=True), nullable=False)
+    type               = Column(PgEnum('FREE', 'PREMIUM', name='subscription_type', create_type=False), default='FREE')
+    status             = Column(PgEnum('ACTIVE', 'CANCELLED', 'EXPIRED', 'TRIAL', name='subscription_status', create_type=False), default='ACTIVE')
+    date_debut         = Column(TIMESTAMP(timezone=True), default=datetime.utcnow, nullable=False)
+    date_fin           = Column(TIMESTAMP(timezone=True))
+    stripe_customer_id = Column(String(100))
+    stripe_sub_id      = Column(String(100))
+    prix_mensuel       = Column(Numeric(8, 2))
+    devise             = Column(String(10), default='MAD')
+    auto_renew         = Column(Boolean, default=True)
+    cancelled_at       = Column(TIMESTAMP(timezone=True))
+    cancel_reason      = Column(Text)
+    created_at         = Column(TIMESTAMP(timezone=True), default=datetime.utcnow)
+    updated_at         = Column(TIMESTAMP(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class BookComment(Base):

@@ -15,6 +15,7 @@ from routers import recommendations
 from routers import churn
 from routers import moderator
 from routers import dashboard
+from routers import payment
 from database import SessionLocal
 from services.churn_service import run_daily_churn_scoring
 
@@ -71,6 +72,7 @@ app.include_router(recommendations.router)
 app.include_router(churn.router)
 app.include_router(moderator.router)
 app.include_router(dashboard.router)
+app.include_router(payment.router)
 
 
 @app.get("/")

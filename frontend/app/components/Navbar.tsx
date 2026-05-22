@@ -224,12 +224,20 @@ export default function Navbar() {
                   {t("navbar.view_profile")}
                 </Link>
                 {!pathname.startsWith("/admin") && (
-                  <Link
-                    href="/user/favourites"
-                    style={{ display: "block", padding: "12px", color: "#e11d48", textDecoration: "none", borderBottom: "1px solid #eee" }}
-                  >
-                    {t("navbar.my_favourites")}
-                  </Link>
+                  <>
+                    <Link
+                      href="/user/favourites"
+                      style={{ display: "block", padding: "12px", color: "#e11d48", textDecoration: "none", borderBottom: "1px solid #eee" }}
+                    >
+                      {t("navbar.my_favourites")}
+                    </Link>
+                    <Link
+                      href="/pricing"
+                      style={{ display: "block", padding: "12px", color: "#2563eb", textDecoration: "none", borderBottom: "1px solid #eee", fontWeight: "bold" }}
+                    >
+                      ⭐ Premium
+                    </Link>
+                  </>
                 )}
                 
                 {/* 
