@@ -52,6 +52,7 @@ Configurer l'authentification Google :
   6) Dans le dossier frontend, créez un fichier nommé .env.local.
   7) Ajoutez-y les variables suivantes en utilisant les clés obtenues à l'étape précédente :
 
+
   # Fichier: frontend/.env.local
 
 # Clés obtenues depuis la Google Cloud Console

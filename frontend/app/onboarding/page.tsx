@@ -72,7 +72,7 @@ export default function OnboardingPage() {
 
     // Si l'utilisateur a DÉJÀ fait le quiz → on le redirige
     if (session.has_onboarded) {
-      router.push("/user/books");
+      router.push("/books");
       return;
     }
 
