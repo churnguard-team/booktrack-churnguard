@@ -26,6 +26,99 @@ Postgresql 18.3 Windows x86-64 (pgadmin4 or psql)
  
 relancer docker : docker compose up -d --build
 
+
+## Paiement Stripe — Setup pour chaque membre
+
+### 1 — Obtenir les clés Stripe du projet
+
+Demander a yasser les 2 valeurs suivantes :
+  - STRIPE_SECRET_KEY       (commence par sk_test_...)
+  - STRIPE_PREMIUM_PRICE_ID (commence par price_...)
+  - STRIPE_WEBHOOK_SECRET   (voir étape 3 ci-dessous — chaque membre génère le sien)
+
+### 2 — Configurer le fichier .env
+
+Dans le fichier .env à la racine du projet (à côté de docker-compose.yml),
+ajouter ces variables :
+
+  POSTGRES_PASSWORD=votre_mot_de_passe_local
+  STRIPE_SECRET_KEY=sk_test_VALEUR_DONNEE_PAR_LE_RESPONSABLE
+  STRIPE_PREMIUM_PRICE_ID=price_VALEUR_DONNEE_PAR_LE_RESPONSABLE
+  STRIPE_WEBHOOK_SECRET=whsec_GENERE_A_LETAPE_3
+  FRONTEND_URL=http://localhost:3000
+
+Dans le fichier frontend/.env.local, ajouter :
+
+  NEXT_PUBLIC_API_URL=http://localhost:8000
+
+### 3 — Installer le Stripe CLI
+
+Stripe ne peut pas atteindre localhost directement.
+Le Stripe CLI fait le pont entre Stripe et votre backend local.
+
+**Windows**
+  - Télécharger le .zip depuis : https://github.com/stripe/stripe-cli/releases/latest
+  - Extraire stripe.exe et le placer dans un dossier (ex: C:\stripe\)
+  - Ajouter ce dossier au PATH Windows (Paramètres > Variables d'environnement)
+  - Vérifier : stripe --version
+
+**macOS**
+  brew install stripe/stripe-cli/stripe
+
+**Linux**
+  Voir : https://stripe.com/docs/stripe-cli#install
+
+### 4 — Se connecter au compte Stripe du projet
+
+  stripe login
+
+  Un lien s'ouvre dans le navigateur — se connecter avec le compte Stripe du projet
+  (demander les identifiants au responsable, ou utiliser son propre compte sandbox).
+
+### 5 — Lancer l'écoute des webhooks
+
+Dans un terminal séparé (laisser tourner pendant toute la session de test) :
+
+  stripe listen --forward-to localhost:8000/api/payment/webhook
+
+La commande affiche une ligne comme :
+  > Your webhook signing secret is whsec_xxxxxxxxxxxx
+
+Copier ce secret et le mettre dans le .env à la racine :
+  STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxx
+
+ATTENTION : ce secret change à chaque fois que vous relancez "stripe listen".
+Si le webhook ne fonctionne plus, relancer stripe listen et mettre à jour .env.
+
+Puis redémarrer le backend pour prendre en compte le nouveau secret :
+  docker compose up -d --build backend
+
+### 6 — Tester le paiement
+
+  1. Aller sur http://localhost:3000/pricing
+  2. Cliquer sur "Passer Premium"
+  3. Sur la page Stripe, utiliser la carte de test :
+     - Numéro : 4242 4242 4242 4242
+     - Date    : n'importe quelle date future (ex: 12/34)
+     - CVC     : n'importe quels 3 chiffres (ex: 123)
+  4. Après paiement, vérifier le statut :
+     http://localhost:8000/api/payment/subscription/<votre_user_id>
+     => "type": "PREMIUM" confirme que tout fonctionne
+
+### 7 — Tester sans passer par Stripe (dev rapide)
+
+Si vous ne voulez pas faire un vrai paiement test à chaque fois,
+un endpoint de dev est disponible pour forcer le statut PREMIUM directement :
+
+  POST http://localhost:8000/api/payment/dev/set-premium/<votre_user_id>
+
+Exemple curl :
+  curl -X POST http://localhost:8000/api/payment/dev/set-premium/<votre_user_id>
+
+Ou directement dans le navigateur via un outil comme Postman / Thunder Client.
+
+Note : votre user_id se trouve dans le cookie user_session (F12 > Application > Cookies).
+
 note: pour lancer l'app :  docker compose up va lancer les serveurs back et front
   API racine : http://localhost:8000/
   API livres : http://localhost:8000/books

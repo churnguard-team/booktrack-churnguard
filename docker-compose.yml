@@ -21,6 +21,10 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/bookdatabase
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID}
+      FRONTEND_URL: ${FRONTEND_URL}
     volumes:
       - ./Backend:/app # ← hot reload : tes modifications s'appliquent direct
     depends_on:

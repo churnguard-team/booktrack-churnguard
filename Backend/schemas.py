@@ -75,6 +75,35 @@ class UserBookUpdate(BaseModel):
 
 # ─── Schémas pour les commentaires de livres ───────────────────────────────
 
+# ─── Schémas pour les abonnements / paiement ────────────────────────────────
+
+class SubscriptionResponse(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    type: str
+    status: str
+    date_debut: datetime
+    date_fin: Optional[datetime] = None
+    stripe_customer_id: Optional[str] = None
+    stripe_sub_id: Optional[str] = None
+    auto_renew: Optional[bool] = True
+
+    class Config:
+        from_attributes = True
+
+
+class CheckoutSessionRequest(BaseModel):
+    user_id: str
+    email: str
+
+
+class CancelSubscriptionRequest(BaseModel):
+    user_id: str
+    reason: Optional[str] = None
+
+
+# ─── Schémas pour les commentaires de livres ────────────────────────────────
+
 # Schéma reçu du frontend lors de la création d'un commentaire
 class CommentCreate(BaseModel):
     user_id: uuid.UUID   # L'identifiant de l'utilisateur qui commente
