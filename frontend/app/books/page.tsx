@@ -55,7 +55,16 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const library = libraryRes.ok ? await libraryRes.json() : [];
   const trendingBooks: BookItem[] = trendingRes.ok ? await trendingRes.json() : [];
   const recoData = recoRes.ok ? await recoRes.json() : { recommendations: [] };
-  const recommendedBooks: BookItem[] = recoData.recommendations ?? [];
+  const recommendedBooks = (recoData.recommendations ?? []).map(
+    (r: { book_id: string; title: string; auteur?: string; genre?: string; cover_url?: string; reason?: string }) => ({
+      id: r.book_id,
+      title: r.title,
+      auteur: r.auteur,
+      genre: r.genre,
+      cover_url: r.cover_url,
+      reason: r.reason,
+    })
+  );
 
   const libraryMap = new Map(
     library.map((ub: { book_id: string; is_favourite: boolean; status: string }) => [ub.book_id, ub])

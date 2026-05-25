@@ -10,13 +10,20 @@
 import { useRef } from "react";
 import Link from "next/link";
 
-// Le type des livres qu'on attend en props
 type BookItem = {
   id: string;
   title: string;
   auteur?: string;
   genre?: string;
   cover_url?: string;
+  reason?: string;
+};
+
+const REASON_LABELS: Record<string, { label: string; color: string }> = {
+  genre_preference:  { label: "🎯 Votre genre",       color: "bg-indigo-100 text-indigo-700" },
+  recently_viewed:   { label: "👁️ Consulté récemment", color: "bg-amber-100 text-amber-700" },
+  based_on_comments: { label: "💬 Vos avis",           color: "bg-emerald-100 text-emerald-700" },
+  popular:           { label: "🔥 Populaire",           color: "bg-rose-100 text-rose-700" },
 };
 
 // Props du composant : on reçoit un tableau de livres depuis le Server Component parent
@@ -89,14 +96,16 @@ export default function BookCarousel({ books, basePath = "/user/books" }: { book
               </div>
             )}
 
-            {/* Infos textuelles sous la couverture */}
             <div className="p-3">
-              {/* line-clamp-2 = max 2 lignes, puis "..." */}
               <p className="text-sm font-semibold text-gray-800 line-clamp-2 leading-tight">
                 {book.title}
               </p>
-              {/* truncate = coupe le texte si trop long sur 1 ligne */}
               <p className="text-xs text-gray-400 mt-1 truncate">{book.auteur}</p>
+              {book.reason && REASON_LABELS[book.reason] && (
+                <span className={`inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full ${REASON_LABELS[book.reason].color}`}>
+                  {REASON_LABELS[book.reason].label}
+                </span>
+              )}
             </div>
           </Link>
         ))}
