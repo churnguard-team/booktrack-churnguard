@@ -1,6 +1,7 @@
 import Navbar from "@/app/components/Navbar";
 import Link from "next/link";
 import CommentSection from "@/app/components/CommentSection";
+import BookViewTracker from "@/app/components/BookViewTracker";
 import { cookies } from "next/headers";
 import AddToLibraryButton from "../AddToLibraryButton";
 import FavouriteButton from "../FavouriteButton";
@@ -54,6 +55,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-8">
       <Navbar />
+      <BookViewTracker bookId={id} userId={user?.user_id ?? null} />
       <div className="max-w-4xl mx-auto mt-8">
         <Link href="/books" className="text-sm text-gray-500 hover:text-gray-800 mb-6 inline-block">
           Retour a la bibliotheque

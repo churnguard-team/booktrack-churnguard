@@ -4,23 +4,56 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from ml_models.churn import predict_churn
+from ml_models.churn.feature_extractor import extract_features_for_all_users
+
+
+def _risk_level_pg(score: float) -> str:
+    """Map probability → DB enum value (risk_level)."""
+    if score < 0.3:
+        return "LOW"
+    if score < 0.6:
+        return "MEDIUM"
+    if score < 0.8:
+        return "HIGH"
+    return "CRITICAL"
 
 
 def run_daily_churn_scoring(db: Session) -> Dict[str, Any]:
-    """Placeholder churn scoring pipeline.
+    """Extract features for every active user, run the churn model, upsert churn_scores."""
+    all_features = extract_features_for_all_users(db)
 
-    The current repository does not yet provide a complete feature extraction
-    pipeline for automatic churn scoring. This function is kept so the API
-    and scheduler can start cleanly.
-    """
-    # TODO: implement feature extraction and insert churn scores into churn_scores
-    return {
-        "status": "not_implemented",
-        "detail": (
-            "Automatic churn scoring is not configured. "
-            "Use /api/churn/predict with user features for one-off predictions."
-        ),
-    }
+    scored = 0
+    errors = 0
+
+    for user_id_str, features in all_features.items():
+        if features is None:
+            errors += 1
+            continue
+        try:
+            result = predict_churn(features)
+            score = result["churn_probability"]
+            niveau = _risk_level_pg(score)
+
+            db.execute(
+                text("""
+                    INSERT INTO churn_scores
+                        (user_id, score, niveau_risque, model_version, features_snapshot, is_latest)
+                    VALUES
+                        (:uid, :score, :niveau, 'xgboost-v1', :snap::jsonb, true)
+                """),
+                {
+                    "uid": user_id_str,
+                    "score": score,
+                    "niveau": niveau,
+                    "snap": str(features).replace("'", '"'),
+                },
+            )
+            scored += 1
+        except Exception:
+            errors += 1
+
+    db.commit()
+    return {"status": "ok", "scored": scored, "errors": errors}
 
 
 def get_churn_history(db: Session, days: int = 30) -> List[Dict[str, Any]]:
