@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 from database import get_db
 from models import Book, Genre, UserBook
 from schemas import BookResponse, BookCreate
+from services.notification_service import notify_new_book_matches
 from typing import List
 from uuid import UUID
 
@@ -56,6 +57,21 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
     db.add(new_book)
     db.commit()
     db.refresh(new_book)
+    
+    # Déclencher les notifications pour les utilisateurs correspondants
+    try:
+        genre_ids = [str(g.id) for g in new_book.genres] if new_book.genres else None
+        notify_result = notify_new_book_matches(
+            db,
+            str(new_book.id),
+            new_book.title,
+            new_book.auteur or "Auteur inconnu",
+            genre_ids,
+        )
+        print(f"[notifications] New book notifications: {notify_result}")
+    except Exception as e:
+        print(f"[notifications] Error creating notifications for new book: {e}")
+    
     return new_book
 
 

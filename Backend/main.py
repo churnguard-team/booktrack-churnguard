@@ -14,6 +14,7 @@ from routers import scraper        # Web scraping — recherche de livres via Op
 from routers import recommendations
 from routers import churn
 from routers import retention      # Retention emails campaign
+from routers import notifications  # In-app notifications
 from routers import moderator
 from routers import dashboard
 from routers import payment
@@ -72,6 +73,7 @@ app.include_router(auth_google.router)  # POST /auth/google → connexion OAuth 
 app.include_router(scraper.router)       # GET /scraper/search?q=... → web scraping
 app.include_router(recommendations.router)
 app.include_router(retention.router)     # Retention emails campaign API
+app.include_router(notifications.router) # In-app notifications API
 app.include_router(churn.router)
 app.include_router(moderator.router)
 app.include_router(dashboard.router)
