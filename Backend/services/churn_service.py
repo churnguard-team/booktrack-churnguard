@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from ml_models.churn import predict_churn
 from ml_models.churn.feature_extractor import extract_features_for_all_users
+from services.email_service import send_retention_email
 
 
 def _risk_level_pg(score: float) -> str:
@@ -18,12 +19,18 @@ def _risk_level_pg(score: float) -> str:
     return "CRITICAL"
 
 
-def run_daily_churn_scoring(db: Session) -> Dict[str, Any]:
-    """Extract features for every active user, run the churn model, upsert churn_scores."""
+def run_daily_churn_scoring(db: Session, send_emails: bool = True) -> Dict[str, Any]:
+    """
+    Extract features for every active user, run the churn model, and upsert churn_scores.
+    If send_emails=True, automatically trigger retention emails for high-risk users (score > 0.6).
+    """
     all_features = extract_features_for_all_users(db)
 
     scored = 0
     errors = 0
+    emails_sent = 0
+    emails_failed = 0
+    high_risk_users = []
 
     for user_id_str, features in all_features.items():
         if features is None:
@@ -49,11 +56,37 @@ def run_daily_churn_scoring(db: Session) -> Dict[str, Any]:
                 },
             )
             scored += 1
+            
+            # Collecter les users avec score > 0.6 pour email
+            if score > 0.6 and send_emails:
+                high_risk_users.append((user_id_str, score))
+                
         except Exception:
             errors += 1
 
     db.commit()
-    return {"status": "ok", "scored": scored, "errors": errors}
+    
+    # Envoyer les emails de rétention
+    if send_emails:
+        for user_id, churn_score in high_risk_users:
+            try:
+                result = send_retention_email(db, user_id, churn_score, discount_percent=20)
+                if result["status"] == "sent":
+                    emails_sent += 1
+                else:
+                    emails_failed += 1
+            except Exception as e:
+                print(f"[email] Failed to send retention email to user {user_id}: {e}")
+                emails_failed += 1
+    
+    return {
+        "status": "ok",
+        "scored": scored,
+        "errors": errors,
+        "emails_sent": emails_sent,
+        "emails_failed": emails_failed,
+        "high_risk_users_detected": len(high_risk_users),
+    }
 
 
 def get_churn_history(db: Session, days: int = 30) -> List[Dict[str, Any]]:
