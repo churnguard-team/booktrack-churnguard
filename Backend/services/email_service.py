@@ -235,23 +235,35 @@ def send_retention_email(
         }
     
     # Récupérer les infos utilisateur
-    user_row = db.execute(text("""
-        SELECT u.id::text, u.email, u.nom, u.prenom, u.genres_preferes,
-               cs.niveau_risque,
-               json_agg(json_build_object(
-                   'title', b.title,
-                   'author', b.auteur,
-                   'genre', g.name
-               )) as recommended_books
-        FROM users u
-        LEFT JOIN churn_scores cs ON cs.user_id = u.id AND cs.is_latest = true
-        LEFT JOIN library lib ON lib.user_id = u.id AND lib.statut = 'READING'
-        LEFT JOIN books b ON b.id = lib.book_id
-        LEFT JOIN book_genres bg ON bg.book_id = b.id
-        LEFT JOIN genres g ON g.id = bg.genre_id
-        WHERE u.id = :uid
-        GROUP BY u.id, u.email, u.nom, u.prenom, u.genres_preferes, cs.niveau_risque
-    """), {"uid": user_id}).fetchone()
+    try:
+        user_row = db.execute(text("""
+            SELECT u.id::text, u.email, u.nom, u.prenom, u.genres_preferes,
+                   cs.niveau_risque,
+                   json_agg(json_build_object(
+                       'title', b.title,
+                       'author', b.auteur,
+                       'genre', g.name
+                   )) as recommended_books
+            FROM users u
+            LEFT JOIN churn_scores cs ON cs.user_id = u.id AND cs.is_latest = true
+            LEFT JOIN library lib ON lib.user_id = u.id AND lib.statut = 'READING'
+            LEFT JOIN books b ON b.id = lib.book_id
+            LEFT JOIN book_genres bg ON bg.book_id = b.id
+            LEFT JOIN genres g ON g.id = bg.genre_id
+            WHERE u.id = :uid
+            GROUP BY u.id, u.email, u.nom, u.prenom, u.genres_preferes, cs.niveau_risque
+        """), {"uid": user_id}).fetchone()
+    except Exception:
+        # If the complex query fails (missing tables), rollback and run a simpler fallback query
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        user_row = db.execute(text("""
+            SELECT id::text, email, nom, prenom, genres_preferes, NULL as niveau_risque, '[]'::json as recommended_books
+            FROM users
+            WHERE id = :uid
+        """), {"uid": user_id}).fetchone()
     
     if not user_row:
         return {
@@ -302,7 +314,7 @@ def send_retention_email(
             INSERT INTO retention_actions
                 (id, user_id, type_action, statut, contenu, sujet, date_envoi, metadata, created_at)
             VALUES
-                (:id, :uid, 'EMAIL_RETENTION', 'SENT', :contenu, :sujet, NOW(), :metadata::jsonb, NOW())
+                (:id, :uid, 'EMAIL_RETENTION', 'SENT', :contenu, :sujet, NOW(), :metadata, NOW())
         """), {
             "id": action_id,
             "uid": user_id,
@@ -333,7 +345,7 @@ def send_retention_email(
             INSERT INTO retention_actions
                 (id, user_id, type_action, statut, contenu, sujet, metadata, created_at)
             VALUES
-                (:id, :uid, 'EMAIL_RETENTION', 'FAILED', :contenu, :sujet, :metadata::jsonb, NOW())
+                (:id, :uid, 'EMAIL_RETENTION', 'FAILED', :contenu, :sujet, :metadata, NOW())
         """), {
             "id": action_id,
             "uid": user_id,
