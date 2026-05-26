@@ -81,3 +81,24 @@ class CommentResponse(BaseModel):
 
     class Config:
         from_attributes = True  # Permet la conversion depuis un objet SQLAlchemy
+
+
+# ─── Schémas pour les paiements Stripe ────────────────────────────────────
+
+class CheckoutSessionRequest(BaseModel):
+    email: str
+    user_id: str
+
+class CancelSubscriptionRequest(BaseModel):
+    user_id: str
+    reason: Optional[str] = None
+
+class SubscriptionResponse(BaseModel):
+    id: str
+    user_id: str
+    type: str
+    status: str
+    date_debut: datetime
+    
+    class Config:
+        from_attributes = True
