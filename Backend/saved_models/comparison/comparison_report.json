@@ -1,10 +1,18 @@
 {
-  "generated_at": "2026-05-29T21:56:43.899090",
+  "generated_at": "2026-05-30T04:30:28.491062",
   "dataset": "unknown",
   "n_samples": 0,
   "n_features": 0,
   "churn_rate": 0.0,
   "models": [
+    {
+      "model": "Deep Learning",
+      "accuracy": 0.7913413768630234,
+      "precision": 0.6242236024844721,
+      "recall": 0.5374331550802139,
+      "f1": 0.5775862068965517,
+      "roc_auc": 0.8353018677826862
+    },
     {
       "model": "Logistic Regression",
       "accuracy": 0.7402413058907026,
