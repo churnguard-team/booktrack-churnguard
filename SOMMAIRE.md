@@ -31,18 +31,28 @@
 
 #### 3.1.1 Vue d'ensemble des approches adoptées
 
-Le projet Booktrack Churnguard intègre deux algorithmes complémentaires de machine learning pour la prédiction du churn utilisateur, permettant une robustesse accrue et une comparaison des performances:
+Le projet Booktrack Churnguard compare quatre algorithmes de machine learning pour la prédiction du churn utilisateur, afin de choisir le meilleur modèle et fournir des résultats robustes:
 
-1. **XGBoost (Gradient Boosting Extremisé)**
+1. **Régression logistique**
+   - Baseline linéaire simple
+   - Utilisée comme référence pour la stabilité et l'interprétabilité
+   - Avantages: rapide, facile à expliquer, performance raisonnable sur les variables normalisées
+
+2. **Forêt aléatoire (Random Forest)**
+   - Ensemble d'arbres de décision
+   - Bonne résistance au bruit et aux interactions non linéaires
+   - Avantages: robustesse, peu de réglages nécessaires, performances solides sur données tabulaires
+
+3. **XGBoost (Gradient Boosting Extremisé)**
    - Architecture: 200 estimateurs avec profondeur maximale de 7
    - Taux d'apprentissage: 0.1
    - Régularisation L1/L2: 1.0 (contrôle du surapprentissage)
    - Sampling: 80% des features et 80% des observations par itération
    - Arrêt précoce: 20 rounds sans amélioration (Early Stopping)
    - Métrique: Loss logarithmique binaire (logloss)
-   - Avantages: Performance élevée, interprétabilité via SHAP, gestion efficace des données déséquilibrées
+   - Avantages: performance élevée, interprétabilité via SHAP, gestion efficace des données déséquilibrées
 
-2. **Deep Learning (TensorFlow/Keras)**
+4. **Deep Learning (TensorFlow/Keras)**
    - Architecture: Réseau de neurones feedforward 5 couches
    - Couche 1: 128 neurones + ReLU + BatchNormalization + Dropout(0.3)
    - Couche 2: 64 neurones + ReLU + BatchNormalization + Dropout(0.3)
@@ -51,7 +61,7 @@ Le projet Booktrack Churnguard intègre deux algorithmes complémentaires de mac
    - Optimiseur: Adam avec convergence adaptive
    - Fonction de perte: Binary Crossentropy
    - Normalisation des données: StandardScaler (moyenne 0, écart-type 1)
-   - Avantages: Capture des relations non-linéaires complexes, capacité de généralisation
+   - Avantages: capture des relations non linéaires complexes, capacité de généralisation
 
 #### 3.1.2 Données d'entraînement
 
@@ -72,6 +82,19 @@ Le projet Booktrack Churnguard intègre deux algorithmes complémentaires de mac
 6. Arrêt précoce basé sur performance validation
 7. Évaluation sur ensemble test indépendant
 8. Sauvegarde du modèle (architecture + poids) et des métadonnées
+
+#### 3.1.4 Comparaison des 4 modèles et sélection du meilleur
+
+- Un rapport de comparaison visuel a été généré à partir des métadonnées de chaque modèle.
+- Les critères d'évaluation utilisés sont: accuracy, precision, recall, F1-score, ROC-AUC et stabilité des résultats.
+- La comparaison porte sur:
+  - **Régression logistique**: baseline interprétable, rapide, utile comme référence initiale.
+  - **Random Forest**: bonne robustesse, gestion des interactions non linéaires, performance stable.
+  - **XGBoost**: meilleur compromis performance / stabilité, avec une interprétation possible via SHAP.
+  - **Deep Learning**: très bon pour capturer les relations complexes, mais plus coûteux en temps d'entraînement et moins simple à expliquer.
+- Le modèle retenu pour la production est **XGBoost**, car il présente la meilleure performance globale sur la validation tout en offrant une sécurité d'interprétation et une bonne généralisation.
+- La comparaison visuelle a été réalisée sous forme de graphiques comparatifs et tableaux de métriques, mettant en évidence la supériorité de XGBoost sur les autres approches pour ce dataset.
+- Ce travail montre que la solution IA ne repose pas sur un seul algorithme, mais sur une approche comparative rigoureuse pour choisir le modèle le plus adapté.
 
 ---
 
