@@ -1,21 +1,13 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date, datetime
 import uuid
 
-class GenreResponse(BaseModel):
-    id: uuid.UUID
-    name: str
-    type: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 class BookBase(BaseModel):
     title: str
     description: Optional[str] = None
     auteur: Optional[str] = None
-    type: str
     genre: Optional[str] = None
     cover_url: Optional[str] = None
     nb_pages: Optional[int] = None
@@ -23,13 +15,11 @@ class BookBase(BaseModel):
     langue: Optional[str] = None
 
 class BookCreate(BookBase):
-    genre_ids: list[uuid.UUID] = Field(default_factory=list)
+    pass
 
 class BookResponse(BookBase):
     id: uuid.UUID
     created_at: datetime
-    genres: list[GenreResponse] = Field(default_factory=list)
-
     class Config:
         from_attributes = True
 
@@ -39,9 +29,9 @@ class UserResponse(BaseModel):
     email: str
     nom: str
     prenom: str
+    role: str
     is_active: bool
     created_at: datetime
-
     class Config:
         from_attributes = True
 
@@ -75,35 +65,6 @@ class UserBookUpdate(BaseModel):
 
 # ─── Schémas pour les commentaires de livres ───────────────────────────────
 
-# ─── Schémas pour les abonnements / paiement ────────────────────────────────
-
-class SubscriptionResponse(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    type: str
-    status: str
-    date_debut: datetime
-    date_fin: Optional[datetime] = None
-    stripe_customer_id: Optional[str] = None
-    stripe_sub_id: Optional[str] = None
-    auto_renew: Optional[bool] = True
-
-    class Config:
-        from_attributes = True
-
-
-class CheckoutSessionRequest(BaseModel):
-    user_id: str
-    email: str
-
-
-class CancelSubscriptionRequest(BaseModel):
-    user_id: str
-    reason: Optional[str] = None
-
-
-# ─── Schémas pour les commentaires de livres ────────────────────────────────
-
 # Schéma reçu du frontend lors de la création d'un commentaire
 class CommentCreate(BaseModel):
     user_id: uuid.UUID   # L'identifiant de l'utilisateur qui commente
@@ -120,3 +81,24 @@ class CommentResponse(BaseModel):
 
     class Config:
         from_attributes = True  # Permet la conversion depuis un objet SQLAlchemy
+
+
+# ─── Schémas pour les paiements Stripe ────────────────────────────────────
+
+class CheckoutSessionRequest(BaseModel):
+    email: str
+    user_id: str
+
+class CancelSubscriptionRequest(BaseModel):
+    user_id: str
+    reason: Optional[str] = None
+
+class SubscriptionResponse(BaseModel):
+    id: str
+    user_id: str
+    type: str
+    status: str
+    date_debut: datetime
+    
+    class Config:
+        from_attributes = True

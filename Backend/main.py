@@ -13,6 +13,8 @@ from routers import auth_google    # Authentification Google OAuth
 from routers import scraper        # Web scraping — recherche de livres via Open Library / Google Books
 from routers import recommendations
 from routers import churn
+from routers import retention      # Retention emails campaign
+from routers import notifications  # In-app notifications
 from routers import moderator
 from routers import dashboard
 from routers import payment
@@ -27,7 +29,8 @@ scheduler = BackgroundScheduler()
 def _daily_churn_job() -> None:
     db = SessionLocal()
     try:
-        result = run_daily_churn_scoring(db)
+        # Exécute la détection de churn ET envoie les emails de rétention automatiquement
+        result = run_daily_churn_scoring(db, send_emails=True)
         print(f"[churn] daily detection executed: {result}")
     except Exception as exc:
         print(f"[churn] daily detection failed: {exc}")
@@ -69,6 +72,8 @@ app.include_router(comments.router)  # GET/POST /books/{id}/comments → comment
 app.include_router(auth_google.router)  # POST /auth/google → connexion OAuth Google
 app.include_router(scraper.router)       # GET /scraper/search?q=... → web scraping
 app.include_router(recommendations.router)
+app.include_router(retention.router)     # Retention emails campaign API
+app.include_router(notifications.router) # In-app notifications API
 app.include_router(churn.router)
 app.include_router(moderator.router)
 app.include_router(dashboard.router)

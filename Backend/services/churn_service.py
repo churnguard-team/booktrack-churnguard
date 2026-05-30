@@ -4,22 +4,88 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from ml_models.churn import predict_churn
+from ml_models.churn.feature_extractor import extract_features_for_all_users
+from services.email_service import send_retention_email
 
 
-def run_daily_churn_scoring(db: Session) -> Dict[str, Any]:
-    """Placeholder churn scoring pipeline.
+def _risk_level_pg(score: float) -> str:
+    """Map probability → DB enum value (risk_level)."""
+    if score < 0.3:
+        return "LOW"
+    if score < 0.6:
+        return "MEDIUM"
+    if score < 0.8:
+        return "HIGH"
+    return "CRITICAL"
 
-    The current repository does not yet provide a complete feature extraction
-    pipeline for automatic churn scoring. This function is kept so the API
-    and scheduler can start cleanly.
+
+def run_daily_churn_scoring(db: Session, send_emails: bool = True) -> Dict[str, Any]:
     """
-    # TODO: implement feature extraction and insert churn scores into churn_scores
+    Extract features for every active user, run the churn model, and upsert churn_scores.
+    If send_emails=True, automatically trigger retention emails for high-risk users (score > 0.6).
+    """
+    all_features = extract_features_for_all_users(db)
+
+    scored = 0
+    errors = 0
+    emails_sent = 0
+    emails_failed = 0
+    high_risk_users = []
+
+    for user_id_str, features in all_features.items():
+        if features is None:
+            errors += 1
+            continue
+        try:
+            result = predict_churn(features)
+            score = result["churn_probability"]
+            niveau = _risk_level_pg(score)
+
+            db.execute(
+                text("""
+                    INSERT INTO churn_scores
+                        (user_id, score, niveau_risque, model_version, features_snapshot, is_latest)
+                    VALUES
+                        (:uid, :score, :niveau, 'xgboost-v1', :snap::jsonb, true)
+                """),
+                {
+                    "uid": user_id_str,
+                    "score": score,
+                    "niveau": niveau,
+                    "snap": str(features).replace("'", '"'),
+                },
+            )
+            scored += 1
+            
+            # Collecter les users avec score > 0.6 pour email
+            if score > 0.6 and send_emails:
+                high_risk_users.append((user_id_str, score))
+                
+        except Exception:
+            errors += 1
+
+    db.commit()
+    
+    # Envoyer les emails de rétention
+    if send_emails:
+        for user_id, churn_score in high_risk_users:
+            try:
+                result = send_retention_email(db, user_id, churn_score, discount_percent=20)
+                if result["status"] == "sent":
+                    emails_sent += 1
+                else:
+                    emails_failed += 1
+            except Exception as e:
+                print(f"[email] Failed to send retention email to user {user_id}: {e}")
+                emails_failed += 1
+    
     return {
-        "status": "not_implemented",
-        "detail": (
-            "Automatic churn scoring is not configured. "
-            "Use /api/churn/predict with user features for one-off predictions."
-        ),
+        "status": "ok",
+        "scored": scored,
+        "errors": errors,
+        "emails_sent": emails_sent,
+        "emails_failed": emails_failed,
+        "high_risk_users_detected": len(high_risk_users),
     }
 
 

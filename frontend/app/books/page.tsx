@@ -40,17 +40,31 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
 
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-  const [allBooksRes, libraryRes, trendingRes] = await Promise.all([
+  const [allBooksRes, libraryRes, trendingRes, recoRes] = await Promise.all([
     fetch(`${apiUrl}/books`, { cache: "no-store" }),
     user
       ? fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" })
       : Promise.resolve(new Response("[]")),
     fetch(`${apiUrl}/books/trending`, { cache: "no-store" }),
+    user
+      ? fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=10`, { cache: "no-store" })
+      : Promise.resolve(new Response(JSON.stringify({ recommendations: [] }))),
   ]);
 
   const allBooks: BookItem[] = allBooksRes.ok ? await allBooksRes.json() : [];
   const library = libraryRes.ok ? await libraryRes.json() : [];
   const trendingBooks: BookItem[] = trendingRes.ok ? await trendingRes.json() : [];
+  const recoData = recoRes.ok ? await recoRes.json() : { recommendations: [] };
+  const recommendedBooks = (recoData.recommendations ?? []).map(
+    (r: { book_id: string; title: string; auteur?: string; genre?: string; cover_url?: string; reason?: string }) => ({
+      id: r.book_id,
+      title: r.title,
+      auteur: r.auteur,
+      genre: r.genre,
+      cover_url: r.cover_url,
+      reason: r.reason,
+    })
+  );
 
   const libraryMap = new Map(
     library.map((ub: { book_id: string; is_favourite: boolean; status: string }) => [ub.book_id, ub])
@@ -68,6 +82,16 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
     <main className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-6 py-8">
+
+        {recommendedBooks.length > 0 && !(recherche || genre || filter) && (
+          <section className="mb-12">
+            <div className="mb-5">
+              <h2 className="text-xl font-bold text-gray-800">✨ Recommandés pour vous</h2>
+              <p className="text-sm text-gray-400 mt-0.5">Basé sur vos lectures et préférences</p>
+            </div>
+            <BookCarousel books={recommendedBooks} basePath="/books" />
+          </section>
+        )}
 
         {trendingBooks.length > 0 && !(recherche || genre || filter) && (
           <section className="mb-12">

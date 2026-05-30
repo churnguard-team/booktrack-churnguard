@@ -9,7 +9,11 @@ from sqlalchemy import text
 from typing import List, Dict, Any
 import uuid
 
-
+##Il expose :
+#get_high_churn_users(db, threshold=0.6) : liste les utilisateurs avec churn_scores.is_latest = true et score >= 0.6
+#trigger_retention_campaign(db, user_id, discount_percent, message) : insère une ligne dans retention_actions
+#En pratique, la retention se base sur le churn score stocké et déclenche des offres discount pour les utilisateurs à risque
+#needed:test des email et emails
 def get_high_churn_users(db: Session, threshold: float = 0.6) -> List[Dict[str, Any]]:
     """Retourne les utilisateurs dont le churn score depasse le seuil."""
     rows = db.execute(text("""
