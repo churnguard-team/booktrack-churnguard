@@ -76,13 +76,18 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[BookResponse])
-def get_books(db: Session = Depends(get_db)):
-    return db.query(Book).options(joinedload(Book.genres)).limit(1000).all()
+def get_books(skip: int = 0, limit: int = 25, db: Session = Depends(get_db)):
+    return db.query(Book).options(joinedload(Book.genres)).offset(skip).limit(limit).all()
 
 
 @router.get("/trending", response_model=List[BookResponse])
 def get_trending_books(db: Session = Depends(get_db)):
     return db.query(Book).options(joinedload(Book.genres)).order_by(func.random()).limit(10).all()
+
+
+@router.get("/count")
+def count_books(db: Session = Depends(get_db)):
+    return {"total": db.query(Book).count()}
 
 
 @router.get("/{book_id}")
@@ -117,6 +122,8 @@ def update_book(book_id: UUID, book: BookCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_book)
     return db_book
+
+
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)

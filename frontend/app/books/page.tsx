@@ -21,7 +21,9 @@ export type BookItem = {
   date_publication?: string;
 };
 
-export default async function BooksPage({ searchParams }: { searchParams: Promise<{ q?: string; genre?: string; type?: string; author?: string; year?: string; filter?: string }> }) {
+export default async function BooksPage({ searchParams }: {
+  searchParams: Promise<{ q?: string; genre?: string; type?: string; author?: string; year?: string; filter?: string; page?: string }>
+}) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("user_session");
   const user = sessionCookie ? JSON.parse(decodeURIComponent(sessionCookie.value)) : null;
@@ -37,11 +39,14 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
   const author = params.author || "";
   const year = params.year || "";
   const filter = params.filter?.toLowerCase() || "";
+  const page = parseInt(params.page || "1");
+  const PAGE_SIZE = 25;
+  const skip = (page - 1) * PAGE_SIZE;
 
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-  const [allBooksRes, libraryRes, trendingRes, recoRes] = await Promise.all([
-    fetch(`${apiUrl}/books`, { cache: "no-store" }),
+  const [allBooksRes, libraryRes, trendingRes, recoRes, totalRes] = await Promise.all([
+    fetch(`${apiUrl}/books?skip=${skip}&limit=${PAGE_SIZE}`, { cache: "no-store" }),
     user
       ? fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" })
       : Promise.resolve(new Response("[]")),
@@ -49,12 +54,16 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
     user
       ? fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=10`, { cache: "no-store" })
       : Promise.resolve(new Response(JSON.stringify({ recommendations: [] }))),
+    fetch(`${apiUrl}/books/count`, { cache: "no-store" }),
   ]);
 
   const allBooks: BookItem[] = allBooksRes.ok ? await allBooksRes.json() : [];
   const library = libraryRes.ok ? await libraryRes.json() : [];
   const trendingBooks: BookItem[] = trendingRes.ok ? await trendingRes.json() : [];
   const recoData = recoRes.ok ? await recoRes.json() : { recommendations: [] };
+  const { total } = totalRes.ok ? await totalRes.json() : { total: 0 };
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
   const recommendedBooks = (recoData.recommendations ?? []).map(
     (r: { book_id: string; title: string; auteur?: string; genre?: string; cover_url?: string; reason?: string }) => ({
       id: r.book_id,
@@ -114,7 +123,7 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
               <p className="text-sm text-gray-400 mt-0.5">
                 {recherche
                   ? dict.home.results_for.replace("{count}", filteredBooks.length.toString()).replace("{query}", recherche)
-                  : dict.home.books_available.replace("{count}", allBooks.length.toString())}
+                  : dict.home.books_available.replace("{count}", total.toString())}
               </p>
             </div>
           </div>
@@ -195,6 +204,28 @@ export default async function BooksPage({ searchParams }: { searchParams: Promis
               <p className="text-5xl mb-4">🔍</p>
               <p className="text-lg font-medium">{dict.home.no_books_found}</p>
               <p className="text-sm mt-1">{dict.home.try_another_term}</p>
+            </div>
+          )}
+
+          {!recherche && !genre && !filter && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 mt-10">
+              {page > 1 && (
+                <Link
+                  href={`/books?page=${page - 1}`}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  ← Précédent
+                </Link>
+              )}
+              <span className="text-sm text-gray-500">Page {page} sur {totalPages}</span>
+              {page < totalPages && (
+                <Link
+                  href={`/books?page=${page + 1}`}
+                  className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700"
+                >
+                  Suivant →
+                </Link>
+              )}
             </div>
           )}
         </section>

@@ -103,7 +103,7 @@ export default function AddBookForm() {
       if (form.langue.trim()) payload.langue = form.langue.trim();
       if (form.nb_pages) payload.nb_pages = Number(form.nb_pages);
 
-      const res = await fetch(`${apiUrl}/books`, {
+      const res = await fetch(`${apiUrl}/books/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

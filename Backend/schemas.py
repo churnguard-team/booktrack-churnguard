@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional,List
 from datetime import date, datetime
 import uuid
 
@@ -8,7 +8,9 @@ class BookBase(BaseModel):
     title: str
     description: Optional[str] = None
     auteur: Optional[str] = None
+    type: Optional[str] = None 
     genre: Optional[str] = None
+    genre_ids: Optional[List[str]] = None
     cover_url: Optional[str] = None
     nb_pages: Optional[int] = None
     date_publication: Optional[date] = None
@@ -29,7 +31,6 @@ class UserResponse(BaseModel):
     email: str
     nom: str
     prenom: str
-    role: str
     is_active: bool
     created_at: datetime
     class Config:
