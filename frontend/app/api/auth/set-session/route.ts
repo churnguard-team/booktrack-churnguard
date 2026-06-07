@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   } else if (!sessionData.has_onboarded) {
     redirectUrl = "/onboarding"; // Nouvel utilisateur Google → quiz de préférences
   } else {
-    redirectUrl = "/user/books";
+    redirectUrl = "/books";
   }
 
   // Crée la réponse de redirection
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   // Ce cookie est lu par middleware.ts pour protéger les routes
   response.cookies.set(
     "user_session",
-    encodeURIComponent(JSON.stringify(sessionData)),
+    JSON.stringify(sessionData),
     {
       httpOnly: false,   // false pour que le JS côté client puisse le lire (comme avant)
       path: "/",

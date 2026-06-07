@@ -28,7 +28,7 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
 
 // Props du composant : on reçoit un tableau de livres depuis le Server Component parent
 // basePath permet de changer la destination du lien selon le contexte (user ou admin)
-export default function BookCarousel({ books, basePath = "/user/books" }: { books: BookItem[], basePath?: string }) {
+export default function BookCarousel({ books, basePath = "/books" }: { books: BookItem[], basePath?: string }) {
   // useRef nous donne une référence directe au <div> scrollable
   // sans déclencher un re-rendu du composant (contrairement à useState)
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -75,7 +75,7 @@ export default function BookCarousel({ books, basePath = "/user/books" }: { book
         {books.map((book) => (
           <Link
             key={book.id}
-          // basePath est "/user/books" par défaut, ou "/admin/books" si passé en prop
+          // basePath est "/books" par défaut, ou "/admin/books" si passé en prop
             href={`${basePath}/${book.id}`}
             // flex-shrink-0 EMPÊCHE la carte de rétrécir et garde sa taille fixe
             className="flex-shrink-0 w-40 bg-white rounded-xl shadow-sm border border-gray-100 

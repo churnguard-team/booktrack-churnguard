@@ -41,6 +41,8 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000 # ← navigateur
       API_URL: http://backend:8000 # ← serveur Docker
+      WATCHPACK_POLLING: "true" # ← hot reload fiable avec Docker Desktop/Windows
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ./frontend:/app
       - /app/node_modules

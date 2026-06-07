@@ -170,7 +170,7 @@ export default function OnboardingPage() {
       }
 
       // 4. Redirection vers l'accueil
-      router.push("/user/books");
+      router.push("/books");
     } catch (err) {
       console.error("Erreur onboarding :", err);
       setIsSaving(false);

@@ -54,7 +54,7 @@ export default function Navbar() {
           setHomeUrl("/");
         }
       } catch (error) {
-        // En cas d'erreur de parsing, on redirige vers /user/books par défaut
+        // En cas d'erreur de parsing, on redirige vers /books par défaut
         setHomeUrl("/books");
       }
     } else {
