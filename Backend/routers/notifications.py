@@ -29,8 +29,55 @@ class NotificationCreate(BaseModel):
     metadata: dict = None
 
 
-@router.get("/user/{user_id}")
-def get_notifications(
+@router.post("/generate-recommendation-notifs")
+def generate_recommendation_notifications(
+    limit: int = 50,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Genere des notifications de recommandation pour les users actifs.
+    Chaque user recoit 1 notif avec le top livre recommande pour lui.
+    """
+    from services.recommendation_service import recommend_for_user
+    from sqlalchemy import text
+    import uuid
+
+    users = db.execute(text(
+        "SELECT id::text FROM users WHERE is_active = true LIMIT :l"
+    ), {"l": limit}).fetchall()
+
+    created = 0
+    for (uid,) in users:
+        try:
+            recs = recommend_for_user(db, uid, n=1)
+            if not recs:
+                continue
+            book = recs[0]
+            reason_map = {
+                "genre_preference": "correspond a vos genres preferes",
+                "based_on_comments": "similaire a vos lectures commentees",
+                "recently_viewed": "que vous avez consulte recemment",
+                "popular": "tres populaire en ce moment",
+            }
+            reason_text = reason_map.get(book.get("reason", ""), "selectionne pour vous")
+            db.execute(text("""
+                INSERT INTO notifications (id, user_id, type, titre, contenu, is_read, metadata, created_at)
+                VALUES (:id, :uid, 'RECOMMENDATION', :titre, :contenu, false, CAST(:meta AS jsonb), NOW())
+            """), {
+                "id": str(uuid.uuid4()),
+                "uid": uid,
+                "titre": f"\U0001f4da Recommande pour vous : {book['title']}",
+                "contenu": f"'{book['title']}' de {book['auteur']} — {reason_text}.",
+                "meta": json.dumps({"book_id": book["book_id"], "reason": book.get("reason"), "score": book.get("score")}),
+            })
+            created += 1
+        except Exception:
+            continue
+
+    db.commit()
+    return {"status": "ok", "notifications_created": created}
+
+
     user_id: str,
     unread_only: bool = False,
     limit: int = 20,

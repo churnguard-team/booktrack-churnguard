@@ -50,21 +50,21 @@ export default function Sidebar({ role, nom, prenom }: { role: string; nom: stri
     <aside style={{
       width: "240px",
       minHeight: "100vh",
-      background: "#111111",
+      background: "#eff6ff",
       display: "flex",
       flexDirection: "column",
       padding: "0",
       flexShrink: 0,
-      borderRight: "1px solid #222",
+      borderRight: "1px solid #bfdbfe",
     }}>
-      <div style={{ padding: "1.75rem 1.5rem 1.25rem", borderBottom: "1px solid #1e1e1e" }}>
-        <div style={{ fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#c9a84c", fontWeight: 700, marginBottom: "0.55rem" }}>
+      <div style={{ padding: "1.75rem 1.5rem 1.25rem", borderBottom: "1px solid #dbeafe" }}>
+        <div style={{ fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#1d4ed8", fontWeight: 700, marginBottom: "0.55rem" }}>
           BookTrack
         </div>
-        <div style={{ fontSize: "0.94rem", fontWeight: 700, marginBottom: "0.25rem", color: "#fff" }}>
+        <div style={{ fontSize: "0.94rem", fontWeight: 700, marginBottom: "0.25rem", color: "#1e3a8a" }}>
           {ROLE_LABELS[role] ?? "Dashboard"}
         </div>
-        <div style={{ color: "#aaa", fontSize: "0.8rem" }}>
+        <div style={{ color: "#475569", fontSize: "0.8rem" }}>
           {prenom} {nom}
         </div>
       </div>
@@ -76,8 +76,8 @@ export default function Sidebar({ role, nom, prenom }: { role: string; nom: stri
             href={item.href}
             style={{
               textDecoration: "none",
-              color: pathname === item.href ? "#fff" : "#bbb",
-              background: pathname === item.href ? "rgba(255,255,255,0.08)" : "transparent",
+              color: pathname === item.href ? "#1e3a8a" : "#475569",
+              background: pathname === item.href ? "#c7d2fe" : "transparent",
               padding: "0.85rem 1rem",
               borderRadius: "0.75rem",
               display: "flex",
@@ -101,8 +101,8 @@ export default function Sidebar({ role, nom, prenom }: { role: string; nom: stri
           padding: "0.85rem 1rem",
           borderRadius: "0.75rem",
           border: "none",
-          background: "#1311a1",
-          color: "#111",
+          background: "#2563eb",
+          color: "#fff",
           fontWeight: 700,
           cursor: "pointer",
         }}

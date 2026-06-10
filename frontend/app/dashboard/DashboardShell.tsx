@@ -32,14 +32,16 @@ export default function DashboardShell({
 
   if (checking) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0d0d0d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#c9a84c", fontSize: "0.9rem", letterSpacing: "0.1em" }}>CHARGEMENT...</div>
+      <div style={{ minHeight: "100vh", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#1d4ed8", fontSize: "0.95rem", letterSpacing: "0.12em", fontWeight: 700 }}>
+          CHARGEMENT...
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#090909", color: "#fff" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
       <Sidebar role={user?.role ?? "USER"} nom={user?.nom ?? ""} prenom={user?.prenom ?? ""} />
       <main style={{ flex: 1, padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         {children}

@@ -243,12 +243,24 @@ function Legend({ items }: { items: { label: string; value: number; color: strin
   );
 }
 
+interface DailyRunResult {
+  status: string;
+  scored: number;
+  errors: number;
+  emails_sent: number;
+  emails_failed: number;
+  high_risk_users_detected: number;
+}
+
 // ── main component ────────────────────────────────────────────────────────────
 export default function ModeratorDashboard() {
   const [churn, setChurn] = useState<ChurnChart | null>(null);
   const [subs, setSubs] = useState<SubChart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
+  const [runResult, setRunResult] = useState<DailyRunResult | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
 
   // canvas refs
   const refChurnDonut = useRef<HTMLCanvasElement>(null);
@@ -257,6 +269,24 @@ export default function ModeratorDashboard() {
   const refSubsDonut = useRef<HTMLCanvasElement>(null);
   const refNewSubs = useRef<HTMLCanvasElement>(null);
   const refCancels = useRef<HTMLCanvasElement>(null);
+
+  async function runChurnDetection() {
+    setRunning(true);
+    setRunResult(null);
+    setRunError(null);
+    try {
+      const res = await fetch(`${API}/api/retention/run-daily`, { method: "POST" });
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const data = await res.json();
+      setRunResult(data);
+      // Recharger les stats après le run
+      await load();
+    } catch (e: any) {
+      setRunError(e.message ?? "Erreur inconnue");
+    } finally {
+      setRunning(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -359,13 +389,58 @@ export default function ModeratorDashboard() {
               Churn · Abonnements · Prédictions ML — mis à jour chaque nuit à 2h
             </p>
           </div>
-          <button
-            onClick={load}
-            className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
-          >
-            Actualiser
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={load}
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Actualiser
+            </button>
+            <button
+              onClick={runChurnDetection}
+              disabled={running}
+              className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            >
+              {running ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Analyse en cours…
+                </>
+              ) : (
+                <>🚨 Lancer détection churn</>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* ── Run result banner ─────────────────────────────────────────── */}
+        {runError && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            ❌ {runError}
+          </div>
+        )}
+        {runResult && (
+          <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-5">
+            <p className="mb-3 font-semibold text-green-800">✅ Détection churn terminée</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {[
+                { label: "Scorés", value: runResult.scored, color: "text-indigo-700" },
+                { label: "Erreurs", value: runResult.errors, color: "text-gray-600" },
+                { label: "À risque détectés", value: runResult.high_risk_users_detected, color: "text-orange-600" },
+                { label: "Emails envoyés", value: runResult.emails_sent, color: "text-green-700" },
+                { label: "Emails échoués", value: runResult.emails_failed, color: "text-red-600" },
+              ].map((s) => (
+                <div key={s.label} className="rounded-xl bg-white p-3 text-center shadow-sm">
+                  <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                  <p className="mt-1 text-xs text-gray-500">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">

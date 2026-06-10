@@ -255,22 +255,16 @@ ALTER TABLE public.book_comments OWNER TO postgres;
 -- Name: books; Type: TABLE; Schema: public; Owner: postgres
 --
 
-
--- Drop the problematic index
-DROP INDEX IF EXISTS public.idx_books_genre;
-
--- Fix genres table - add explicit PRIMARY KEY and NOT NULL
 CREATE TABLE public.genres (
-    id uuid PRIMARY KEY NOT NULL DEFAULT public.uuid_generate_v4(),
-    name VARCHAR(100) NOT NULL,
-    type VARCHAR(100),
-    UNIQUE(name, type)
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    name character varying(100) NOT NULL,
+    type character varying(100)
 );
 
+ALTER TABLE public.genres OWNER TO postgres;
 
--- Books table remains unchanged (no genre column needed)
 CREATE TABLE public.books (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL PRIMARY KEY,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     title character varying(500) NOT NULL,
     description text,
     auteur character varying(255),
@@ -286,16 +280,14 @@ CREATE TABLE public.books (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
--- Junction table with proper constraints
+ALTER TABLE public.books OWNER TO postgres;
+
 CREATE TABLE public.book_genres (
-    book_id uuid NOT NULL REFERENCES public.books(id) ON DELETE CASCADE,
-    genre_id uuid NOT NULL REFERENCES public.genres(id) ON DELETE CASCADE,
-    PRIMARY KEY (book_id, genre_id)
+    book_id uuid NOT NULL,
+    genre_id uuid NOT NULL
 );
 
--- Add performance indexes on junction table
-CREATE INDEX idx_book_genres_book_id ON public.book_genres(book_id);
-CREATE INDEX idx_book_genres_genre_id ON public.book_genres(genre_id);
+ALTER TABLE public.book_genres OWNER TO postgres;
 
 
 --
