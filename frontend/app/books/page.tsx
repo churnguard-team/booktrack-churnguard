@@ -59,11 +59,12 @@ export default async function BooksPage({ searchParams }: {
     safe(fetch(`${apiUrl}/books/count`, { cache: "no-store" })),
   ]);
 
-  const allBooks: BookItem[] = allBooksRes.ok ? await allBooksRes.json().catch(() => []) : [];
-  const library = libraryRes.ok ? await libraryRes.json().catch(() => []) : [];
-  const trendingBooks: BookItem[] = trendingRes.ok ? await trendingRes.json().catch(() => []) : [];
-  const recoData = recoRes.ok ? await recoRes.json().catch(() => ({ recommendations: [] })) : { recommendations: [] };
-  const { total } = totalRes.ok ? await totalRes.json().catch(() => ({ total: 0 })) : { total: 0 };
+  const allBooks: BookItem[] = allBooksRes.ok ? (await allBooksRes.json().catch(() => null)) ?? [] : [];
+  const library = libraryRes.ok ? (await libraryRes.json().catch(() => null)) ?? [] : [];
+  const trendingBooks: BookItem[] = trendingRes.ok ? (await trendingRes.json().catch(() => null)) ?? [] : [];
+  const recoData = recoRes.ok ? (await recoRes.json().catch(() => null)) ?? { recommendations: [] } : { recommendations: [] };
+  const totalRaw = totalRes.ok ? (await totalRes.json().catch(() => null)) : null;
+  const total: number = totalRaw?.total ?? allBooks.length;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const recommendedBooks = (recoData.recommendations ?? []).map(
