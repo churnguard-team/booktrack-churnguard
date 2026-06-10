@@ -45,23 +45,25 @@ export default async function BooksPage({ searchParams }: {
 
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
+  const safe = (p: Promise<Response>) => p.catch(() => new Response("null"));
+
   const [allBooksRes, libraryRes, trendingRes, recoRes, totalRes] = await Promise.all([
-    fetch(`${apiUrl}/books?skip=${skip}&limit=${PAGE_SIZE}`, { cache: "no-store" }),
+    safe(fetch(`${apiUrl}/books?skip=${skip}&limit=${PAGE_SIZE}`, { cache: "no-store" })),
     user
-      ? fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" })
+      ? safe(fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" }))
       : Promise.resolve(new Response("[]")),
-    fetch(`${apiUrl}/books/trending`, { cache: "no-store" }),
+    safe(fetch(`${apiUrl}/books/trending`, { cache: "no-store" })),
     user
-      ? fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=10`, { cache: "no-store" })
+      ? safe(fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=10`, { cache: "no-store" }))
       : Promise.resolve(new Response(JSON.stringify({ recommendations: [] }))),
-    fetch(`${apiUrl}/books/count`, { cache: "no-store" }),
+    safe(fetch(`${apiUrl}/books/count`, { cache: "no-store" })),
   ]);
 
-  const allBooks: BookItem[] = allBooksRes.ok ? await allBooksRes.json() : [];
-  const library = libraryRes.ok ? await libraryRes.json() : [];
-  const trendingBooks: BookItem[] = trendingRes.ok ? await trendingRes.json() : [];
-  const recoData = recoRes.ok ? await recoRes.json() : { recommendations: [] };
-  const { total } = totalRes.ok ? await totalRes.json() : { total: 0 };
+  const allBooks: BookItem[] = allBooksRes.ok ? await allBooksRes.json().catch(() => []) : [];
+  const library = libraryRes.ok ? await libraryRes.json().catch(() => []) : [];
+  const trendingBooks: BookItem[] = trendingRes.ok ? await trendingRes.json().catch(() => []) : [];
+  const recoData = recoRes.ok ? await recoRes.json().catch(() => ({ recommendations: [] })) : { recommendations: [] };
+  const { total } = totalRes.ok ? await totalRes.json().catch(() => ({ total: 0 })) : { total: 0 };
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const recommendedBooks = (recoData.recommendations ?? []).map(
