@@ -3,8 +3,7 @@ import {redirect} from "next/navigation"
 import DashboardList from "./Components/DashboardList"
 import DashboardNavBar from "./Components/DashboardNavbar";
 import GenreRadar from "./Components/GenreRadar";
-
-
+import RecommendationsSection from "./Components/RecommendationsSection";
 
 async function DashboardPage(){
     const cookie = await cookies();
@@ -12,16 +11,20 @@ async function DashboardPage(){
     if(!sessionCookie) redirect("/");
     const user=JSON.parse(decodeURIComponent(sessionCookie.value));
 
-
     const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-    const res= await fetch(`${apiUrl}/users/${user.user_id}/library/`,{cache:"no-store"})
+    const [resLib, resSub] = await Promise.all([
+        fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" }),
+        fetch(`${apiUrl}/api/payment/subscription/${user.user_id}`, { cache: "no-store" }),
+    ]);
 
+    let booksLibrary: any[] = [];
+    if(resLib.ok) booksLibrary = await resLib.json();
 
-    let booksLibrary= []
-
-    if(res.ok){
-        booksLibrary= await res.json();
+    let isPremium = false;
+    if(resSub.ok) {
+        const sub = await resSub.json();
+        isPremium = sub?.type === "PREMIUM";
     }
 
 
@@ -58,6 +61,8 @@ return (
                 </div>
 
             <div className="border-t border-gray-200 mb-8" />
+
+            <RecommendationsSection userId={user.user_id} isPremium={isPremium} />
 
             <div className="mb-8">
                 <GenreRadar books={booksLibrary} />
