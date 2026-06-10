@@ -15,6 +15,20 @@ class ProfileUpdate(BaseModel):
     genres_preferes: List[str]
 
 
+@router.get("/{user_id}/profile")
+def get_profile(user_id: uuid.UUID, db: Session = Depends(get_db)):
+    """Retourne les genres préférés de l'utilisateur (pour personnaliser le catalogue)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+    return {
+        "user_id": str(user.id),
+        "genres_preferes": user.genres_preferes or [],
+        "has_onboarded": bool(user.genres_preferes and len(user.genres_preferes) > 0),
+    }
+
+
 @router.patch("/{user_id}/profile")
 def update_profile(user_id: uuid.UUID, data: ProfileUpdate, db: Session = Depends(get_db)):
     """

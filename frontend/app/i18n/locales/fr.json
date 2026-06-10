@@ -17,14 +17,14 @@
     "philosophy": "Philosophie",
     "signin": "Sign In",
     "view_profile": "Voir Profil",
-    "my_favourites": "❤️ Mes Favoris",
+    "my_favourites": " Mes Favoris",
     "language": "LANGUE",
     "logout": "Se déconnecter"
   },
   "home": {
-    "trending_title": "🔥 Tendances cette semaine",
+    "trending_title": " Tendances cette semaine",
     "trending_subtitle": "Les livres les plus populaires",
-    "all_books_title": "📚 Tous les livres",
+    "all_books_title": " Tous les livres",
     "results_for": "{count} résultat(s) pour \"{query}\"",
     "books_available": "{count} livres disponibles",
     "in_library": "✓ Ma biblio",

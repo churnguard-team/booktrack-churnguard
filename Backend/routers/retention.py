@@ -2,7 +2,7 @@
 API endpoints pour gerer les campagnes de retention par email.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Dict, Any
@@ -175,20 +175,27 @@ def track_email_event(
 
 @router.post("/run-daily")
 def run_daily_churn_and_retention(
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """
-    Exécute la détection de churn quotidienne ET envoie automatiquement
-    les emails de rétention pour les utilisateurs avec score > 0.6.
-    
-    Cette endpoint est normally appelée par le scheduler automatiquement,
-    mais peut aussi être déclenchée manuellement.
+    Lance la détection churn + emails en arrière-plan.
+    Répond immédiatement avec status=queued.
     """
-    result = run_daily_churn_scoring(db, send_emails=True)
-    return {
-        "status": "daily_run_completed",
-        **result,
-    }
+    from database import SessionLocal
+
+    def _run():
+        bg_db = SessionLocal()
+        try:
+            result = run_daily_churn_scoring(bg_db, send_emails=True)
+            print(f"[retention] run-daily completed: {result}")
+        except Exception as e:
+            print(f"[retention] run-daily failed: {e}")
+        finally:
+            bg_db.close()
+
+    background_tasks.add_task(_run)
+    return {"status": "queued", "message": "Détection churn lancée en arrière-plan."}
 
 
 @router.get("/stats")

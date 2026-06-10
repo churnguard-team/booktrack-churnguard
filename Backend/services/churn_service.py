@@ -66,11 +66,12 @@ def run_daily_churn_scoring(db: Session, send_emails: bool = True) -> Dict[str, 
 
     db.commit()
     
-    # Envoyer les emails de rétention
+    # Envoyer les emails de rétention avec discount selon sévérité
     if send_emails:
         for user_id, churn_score in high_risk_users:
+            discount = 30 if churn_score >= 0.8 else 25 if churn_score >= 0.7 else 20
             try:
-                result = send_retention_email(db, user_id, churn_score, discount_percent=20)
+                result = send_retention_email(db, user_id, churn_score, discount_percent=discount)
                 if result["status"] == "sent":
                     emails_sent += 1
                 else:

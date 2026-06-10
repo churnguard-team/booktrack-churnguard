@@ -17,21 +17,20 @@ type BookItem = {
   genre?: string;
 };
 
-// ===== DONNÉES : Genres proposés avec emoji =====
-// On utilisera la colonne genres_preferes (text[]) du backend
+// Genres alignés sur la table `genres.name` en base de données
 const GENRES = [
-  { label: "Roman",              emoji: "📖" },
-  { label: "Science-Fiction",   emoji: "🚀" },
-  { label: "Thriller",          emoji: "🔪" },
-  { label: "Polar",             emoji: "🕵️" },
-  { label: "Philosophie",       emoji: "💭" },
-  { label: "Histoire",          emoji: "🏛️" },
-  { label: "BD / Manga",        emoji: "🎨" },
-  { label: "Biographie",        emoji: "📝" },
-  { label: "Fantastique",       emoji: "🧙" },
-  { label: "Romance",           emoji: "💕" },
-  { label: "Voyage",            emoji: "🌍" },
-  { label: "Développement",     emoji: "💼" },
+  { label: "Thriller",                 emoji: "🔪" },
+  { label: "Science-Fiction",          emoji: "🚀" },
+  { label: "Policier",                 emoji: "🕵️" },
+  { label: "Fantastique",              emoji: "🧙" },
+  { label: "Romance",                  emoji: "💕" },
+  { label: "Historique",               emoji: "🏛️" },
+  { label: "Philosophie",              emoji: "💭" },
+  { label: "Voyage",                   emoji: "🌍" },
+  { label: "Biographie",               emoji: "📝" },
+  { label: "Développement personnel",  emoji: "💼" },
+  { label: "Aventure",                 emoji: "🗺️" },
+  { label: "Shounen",                  emoji: "🎨" },
 ];
 
 export default function OnboardingPage() {
@@ -169,8 +168,11 @@ export default function OnboardingPage() {
         document.cookie = `user_session=${encodeURIComponent(JSON.stringify(session))}; path=/; max-age=86400`;
       }
 
-      // 4. Redirection vers l'accueil
-      router.push("/books");
+      // 4. Redirection vers le catalogue personnalisé
+      const genresParam = selectedGenres.length > 0
+        ? `&genres=${encodeURIComponent(selectedGenres.join(","))}`
+        : "";
+      router.push(`/books?personalized=1${genresParam}`);
     } catch (err) {
       console.error("Erreur onboarding :", err);
       setIsSaving(false);
@@ -178,8 +180,22 @@ export default function OnboardingPage() {
   };
 
 
+  // Livres proposés à l'étape 2 : filtrés par les genres choisis à l'étape 1
+  const getBookGenres = (book: BookItem): string[] => {
+    const fromList = (book as BookItem & { genres?: { name: string }[] }).genres?.map((g) => g.name) ?? [];
+    if (fromList.length > 0) return fromList;
+    return book.genre ? [book.genre] : [];
+  };
+
+  const booksForStep2 =
+    selectedGenres.length > 0
+      ? allBooks.filter((book) =>
+          getBookGenres(book).some((g) => selectedGenres.includes(g))
+        )
+      : allBooks;
+
   // ===== LIVRES "DÉJÀ LUS" (pour affichage à l'étape 3) =====
-  const readBookItems = allBooks.filter((b) => readBooks.has(b.id));
+  const readBookItems = booksForStep2.filter((b) => readBooks.has(b.id));
 
 
   // ===== RENDU =====
@@ -265,7 +281,7 @@ export default function OnboardingPage() {
           {/* ===== ÉTAPE 2 : LIVRES LUS ===== */}
           {step === 2 && (
             <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-1">
-              {allBooks.map((book) => {
+              {booksForStep2.map((book) => {
                 const isSelected = readBooks.has(book.id);
                 return (
                   <button
