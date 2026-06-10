@@ -22,6 +22,42 @@ except ImportError:
     _SKLEARN_AVAILABLE = False
 
 
+# Genres stockés via book_genres + genres (pas de colonne books.genre)
+_GENRE_NAME_SQL = """
+    (SELECT g.name FROM genres g
+     JOIN book_genres bg ON bg.genre_id = g.id
+     WHERE bg.book_id = b.id
+     ORDER BY g.name
+     LIMIT 1)
+"""
+
+_GENRE_EXISTS_SQL = """
+    EXISTS (
+        SELECT 1 FROM book_genres bg_f
+        JOIN genres g_f ON g_f.id = bg_f.genre_id
+        WHERE bg_f.book_id = b.id AND g_f.name = ANY(:genres)
+    )
+"""
+
+_BOOK_SELECT_SQL = f"""
+    SELECT
+        b.id::text,
+        b.title,
+        b.auteur,
+        {_GENRE_NAME_SQL} AS genre,
+        b.cover_url,
+        b.nb_pages,
+        b.date_publication,
+        COUNT(DISTINCT ub.id)          AS nb_ajouts,
+        COALESCE(AVG(ub.note), 0)      AS note_moyenne,
+        COUNT(DISTINCT bc.id)          AS nb_commentaires,
+        b.description
+    FROM books b
+    LEFT JOIN user_books ub  ON ub.book_id = b.id
+    LEFT JOIN book_comments bc ON bc.book_id = b.id
+"""
+
+
 def _get_churn_score(db: Session, user_id: str) -> float:
     row = db.execute(text("""
         SELECT score FROM churn_scores
@@ -38,15 +74,17 @@ def _get_user_genres(db: Session, user_id: str) -> List[str]:
     declared = list(row[0]) if row and row[0] else []
 
     rows = db.execute(text("""
-        SELECT DISTINCT b.genre FROM user_books ub
+        SELECT DISTINCT g.name
+        FROM user_books ub
         JOIN books b ON b.id = ub.book_id
+        JOIN book_genres bg ON bg.book_id = b.id
+        JOIN genres g ON g.id = bg.genre_id
         WHERE ub.user_id = :uid
           AND (
             ub.statut IN ('READ', 'READING')
             OR ub.is_favourite = true
             OR ub.note >= 4
           )
-          AND b.genre IS NOT NULL
     """), {"uid": user_id}).fetchall()
 
     interaction_genres = [r[0] for r in rows]
@@ -128,35 +166,21 @@ def recommend_for_user(db: Session, user_id: str, n: int = 10) -> List[Dict[str,
     # Livres a exclure (deja en bibliotheque)
     exclude_ids = already_in_library
 
-    excl = "AND b.id::text != ALL(:exclude)" if exclude_ids else ""
     params: Dict[str, Any] = {"n": n * 3}  # fetch more for re-ranking
     if exclude_ids:
         params["exclude"] = exclude_ids
 
-    # Filtre genre si disponible
-    genre_filter = ""
+    where_parts = []
     if genres:
         params["genres"] = genres
-        genre_filter = "WHERE b.genre = ANY(:genres)"
+        where_parts.append(_GENRE_EXISTS_SQL)
+    if exclude_ids:
+        where_parts.append("b.id::text != ALL(:exclude)")
+    where_sql = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
 
     rows = db.execute(text(f"""
-        SELECT
-            b.id::text,
-            b.title,
-            b.auteur,
-            b.genre,
-            b.cover_url,
-            b.nb_pages,
-            b.date_publication,
-            COUNT(DISTINCT ub.id)          AS nb_ajouts,
-            COALESCE(AVG(ub.note), 0)      AS note_moyenne,
-            COUNT(DISTINCT bc.id)          AS nb_commentaires,
-            b.description
-        FROM books b
-        LEFT JOIN user_books ub  ON ub.book_id = b.id
-        LEFT JOIN book_comments bc ON bc.book_id = b.id
-        {genre_filter}
-        {excl}
+        {_BOOK_SELECT_SQL}
+        {where_sql}
         GROUP BY b.id
         ORDER BY
             (COUNT(DISTINCT ub.id) + COALESCE(AVG(ub.note),0)*2 + COUNT(DISTINCT bc.id)*0.5) DESC
@@ -167,16 +191,9 @@ def recommend_for_user(db: Session, user_id: str, n: int = 10) -> List[Dict[str,
     if len(rows) < n:
         existing = [r[0] for r in rows] + exclude_ids
         params2: Dict[str, Any] = {"n": n * 3, "exclude2": existing} if existing else {"n": n * 3}
-        excl2 = "AND b.id::text != ALL(:exclude2)" if existing else ""
+        excl2 = "WHERE b.id::text != ALL(:exclude2)" if existing else ""
         extra = db.execute(text(f"""
-            SELECT
-                b.id::text, b.title, b.auteur, b.genre, b.cover_url,
-                b.nb_pages, b.date_publication,
-                COUNT(DISTINCT ub.id), COALESCE(AVG(ub.note), 0),
-                COUNT(DISTINCT bc.id), b.description
-            FROM books b
-            LEFT JOIN user_books ub ON ub.book_id = b.id
-            LEFT JOIN book_comments bc ON bc.book_id = b.id
+            {_BOOK_SELECT_SQL}
             {excl2}
             GROUP BY b.id
             ORDER BY (COUNT(DISTINCT ub.id) + COALESCE(AVG(ub.note),0)*2 + COUNT(DISTINCT bc.id)*0.5) DESC
@@ -233,7 +250,11 @@ def get_popular_books(db: Session, n: int = 10) -> List[Dict[str, Any]]:
     """Livres les plus populaires : ajouts + notes + commentaires."""
     rows = db.execute(text("""
         SELECT
-            b.id::text, b.title, b.auteur, b.genre, b.cover_url,
+            b.id::text, b.title, b.auteur,
+            (SELECT g.name FROM genres g
+             JOIN book_genres bg ON bg.genre_id = g.id
+             WHERE bg.book_id = b.id LIMIT 1) AS genre,
+            b.cover_url,
             COUNT(DISTINCT ub.id)          AS nb_ajouts,
             ROUND(AVG(ub.note), 2)         AS note_moyenne,
             COUNT(DISTINCT bc.id)          AS nb_commentaires
@@ -270,11 +291,12 @@ def get_recommendation_stats(db: Session) -> Dict[str, Any]:
     coverage = round(users_with_books / total_users * 100, 1) if total_users > 0 else 0.0
 
     genre_rows = db.execute(text("""
-        SELECT b.genre, COUNT(ub.id) AS total
+        SELECT g.name, COUNT(ub.id) AS total
         FROM user_books ub
         JOIN books b ON b.id = ub.book_id
-        WHERE b.genre IS NOT NULL
-        GROUP BY b.genre
+        JOIN book_genres bg ON bg.book_id = b.id
+        JOIN genres g ON g.id = bg.genre_id
+        GROUP BY g.name
         ORDER BY total DESC
         LIMIT 5
     """

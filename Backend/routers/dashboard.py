@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from database import get_db
 from typing import Any
+from services.recommendation_service import get_popular_books
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -176,6 +177,42 @@ def get_churn_chart(db: Session = Depends(get_db)) -> dict[str, Any]:
         "churn_rate_percent": round(
             (distribution["HIGH"] + distribution["CRITICAL"]) / total * 100, 1
         ) if total > 0 else 0.0,
+    }
+
+
+@router.get("/admin/stats")
+def get_admin_stats(db: Session = Depends(get_db)) -> dict[str, Any]:
+    total_books = db.execute(text("SELECT COUNT(*) FROM books")).scalar() or 0
+    total_users = db.execute(text("SELECT COUNT(*) FROM users")).scalar() or 0
+
+    recent_books = db.execute(text("""
+        SELECT id, title, auteur, created_at
+        FROM books
+        ORDER BY created_at DESC
+        LIMIT 5
+    """)).fetchall()
+
+    recent_users = db.execute(text("""
+        SELECT id, email, nom, prenom, created_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 5
+    """)).fetchall()
+
+    return {
+        "total_books": total_books,
+        "total_users": total_users,
+        "recent_books": [
+            {"id": str(r[0]), "title": r[1], "auteur": r[2],
+             "created_at": r[3].isoformat() if r[3] else None}
+            for r in recent_books
+        ],
+        "recent_users": [
+            {"id": str(r[0]), "email": r[1], "nom": r[2],
+             "prenom": r[3], "created_at": r[4].isoformat() if r[4] else None}
+            for r in recent_users
+        ],
+        "popular_books": get_popular_books(db, 5),
     }
 
 

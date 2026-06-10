@@ -12,6 +12,9 @@ export type BookGenreFields = {
 const GENRE_FILTER_ALIASES: Record<string, string> = {
   fantasy: "fantastique",
   histoire: "historique",
+  polar: "policier",
+  developpement: "développement personnel",
+  "bd / manga": "shounen",
   shonen: "shounen",
   shoujo: "shojo",
   comics: "comics us",
@@ -37,4 +40,10 @@ export function bookMatchesGenre(book: BookGenreFields, filter: string) {
   const expected = GENRE_FILTER_ALIASES[normalizedFilter] ?? normalizedFilter;
 
   return getGenreLabels(book).some((genre) => normalizeGenre(genre) === expected);
+}
+
+/** Vérifie si un livre correspond à au moins un des genres préférés de l'utilisateur. */
+export function bookMatchesAnyGenre(book: BookGenreFields, preferredGenres: string[]) {
+  if (preferredGenres.length === 0) return true;
+  return preferredGenres.some((g) => bookMatchesGenre(book, g));
 }
