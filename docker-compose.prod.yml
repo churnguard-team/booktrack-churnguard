@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: bookdatabase
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./bookdatabase.sql:/docker-entrypoint-initdb.d/bookdatabase.sql:ro
+    networks:
+      - booktrack_network
+
+  backend:
+    build: ./backend
+    container_name: booktrack_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/bookdatabase
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PREMIUM_PRICE_ID: ${STRIPE_PREMIUM_PRICE_ID:-}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CHURN_MODEL_NAME: ${CHURN_MODEL_NAME:-random_forest}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-BookTrack Team}
+    depends_on:
+      - postgres
+    networks:
+      - booktrack_network
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: booktrack_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      API_URL: http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - booktrack_network
+
+volumes:
+  pg_data:
+
+networks:
+  booktrack_network:
+    driver: bridge
