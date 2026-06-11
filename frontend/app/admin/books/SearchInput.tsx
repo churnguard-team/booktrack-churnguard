@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 type ScrapedBook = {
   title: string;
@@ -15,6 +16,7 @@ export default function SearchInput() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
 
   const [inputValue, setInputValue] = useState(
     searchParams.get("q")?.toString() || ""
@@ -105,7 +107,7 @@ export default function SearchInput() {
       <div style={{ position: "relative" }}>
         <input
           type="text"
-          placeholder="Rechercher (base + web)..."
+          placeholder={t("search.placeholder")}
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => {

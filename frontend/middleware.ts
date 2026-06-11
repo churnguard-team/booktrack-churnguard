@@ -39,11 +39,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Si tout est beau, le videur le laisse passer !
-  return NextResponse.next()
+  // Si tout est beau, le videur le laisse passer, mais sans cache navigateur.
+  const response = NextResponse.next()
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+  return response
 }
 
 // 🎯 Pages protégées — '/' est public (accessible sans connexion)
 export const config = {
-  matcher: ['/admin/:path*', '/user/:path*', '/onboarding'],
+  matcher: ['/admin/:path*', '/user/:path*', '/dashboard/:path*', '/books/:path*', '/onboarding'],
 }

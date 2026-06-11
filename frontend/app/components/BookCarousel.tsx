@@ -9,6 +9,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 type BookItem = {
   id: string;
@@ -19,16 +20,17 @@ type BookItem = {
   reason?: string;
 };
 
-const REASON_LABELS: Record<string, { label: string; color: string }> = {
-  genre_preference:  { label: "🎯 Votre genre",       color: "bg-indigo-100 text-indigo-700" },
-  recently_viewed:   { label: "👁️ Consulté récemment", color: "bg-amber-100 text-amber-700" },
-  based_on_comments: { label: "💬 Vos avis",           color: "bg-emerald-100 text-emerald-700" },
-  popular:           { label: "🔥 Populaire",           color: "bg-rose-100 text-rose-700" },
+const REASON_LABELS: Record<string, { key: string; color: string }> = {
+  genre_preference:  { key: "carousel.reason_genre_preference", color: "bg-indigo-100 text-indigo-700" },
+  recently_viewed:   { key: "carousel.reason_recently_viewed", color: "bg-amber-100 text-amber-700" },
+  based_on_comments: { key: "carousel.reason_based_on_comments", color: "bg-emerald-100 text-emerald-700" },
+  popular:           { key: "carousel.reason_popular", color: "bg-rose-100 text-rose-700" },
 };
 
 // Props du composant : on reçoit un tableau de livres depuis le Server Component parent
 // basePath permet de changer la destination du lien selon le contexte (user ou admin)
 export default function BookCarousel({ books, basePath = "/books" }: { books: BookItem[], basePath?: string }) {
+  const { t } = useTranslation();
   // useRef nous donne une référence directe au <div> scrollable
   // sans déclencher un re-rendu du composant (contrairement à useState)
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ export default function BookCarousel({ books, basePath = "/books" }: { books: Bo
       {/* ===== BOUTON FLÈCHE GAUCHE ===== */}
       <button
         onClick={() => scroll("left")}
-        aria-label="Précédent"
+        aria-label={t("carousel.previous")}
         className="absolute left-0 top-1/2 -translate-y-1/2 z-10 
                    bg-white shadow-md rounded-full w-10 h-10 
                    flex items-center justify-center text-gray-600 text-xl font-bold
@@ -103,7 +105,7 @@ export default function BookCarousel({ books, basePath = "/books" }: { books: Bo
               <p className="text-xs text-gray-400 mt-1 truncate">{book.auteur}</p>
               {book.reason && REASON_LABELS[book.reason] && (
                 <span className={`inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full ${REASON_LABELS[book.reason].color}`}>
-                  {REASON_LABELS[book.reason].label}
+                  {t(REASON_LABELS[book.reason].key)}
                 </span>
               )}
             </div>
@@ -114,7 +116,7 @@ export default function BookCarousel({ books, basePath = "/books" }: { books: Bo
       {/* ===== BOUTON FLÈCHE DROITE ===== */}
       <button
         onClick={() => scroll("right")}
-        aria-label="Suivant"
+        aria-label={t("carousel.next")}
         className="absolute right-0 top-1/2 -translate-y-1/2 z-10 
                    bg-white shadow-md rounded-full w-10 h-10 
                    flex items-center justify-center text-gray-600 text-xl font-bold

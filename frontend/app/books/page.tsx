@@ -21,8 +21,9 @@ export type BookItem = {
   date_publication?: string;
 };
 
-export default async function BooksPage({ searchParams }: {
+export default async function BooksPage({ searchParams, basePath = "/books" }: {
   searchParams: Promise<{ q?: string; genre?: string; type?: string; author?: string; year?: string; filter?: string; page?: string; personalized?: string; genres?: string; show_all?: string }>
+  basePath?: string;
 }) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("user_session");
@@ -33,6 +34,7 @@ export default async function BooksPage({ searchParams }: {
   const dict = await getDictionary(locale);
 
   const params = await searchParams;
+  const currentBasePath = basePath;
   const recherche = params.q?.toLowerCase() || "";
   const genre = params.genre?.toLowerCase() || "";
   const type = params.type || "";
@@ -124,10 +126,12 @@ export default async function BooksPage({ searchParams }: {
 
         {personalized && user && (
           <div className="mb-8 p-4 rounded-2xl bg-indigo-50 border border-indigo-100">
-            <p className="text-indigo-800 font-semibold">Bienvenue sur BookTrack !</p>
+            <p className="text-indigo-800 font-semibold">{dict.home.welcome_title}</p>
             <p className="text-sm text-indigo-600 mt-1">
-              Voici une sélection basée sur vos genres préférés
-              {userPreferredGenres.length > 0 ? ` : ${userPreferredGenres.join(", ")}` : ""}.
+              {dict.home.welcome_subtitle.replace(
+                "{genres}",
+                userPreferredGenres.length > 0 ? ` : ${userPreferredGenres.join(", ")}` : ""
+              )}
             </p>
           </div>
         )}
@@ -135,8 +139,8 @@ export default async function BooksPage({ searchParams }: {
         {recommendedBooks.length > 0 && !(recherche || genre || filter) && (
           <section className="mb-12">
             <div className="mb-5">
-              <h2 className="text-xl font-bold text-gray-800">✨ Recommandés pour vous</h2>
-              <p className="text-sm text-gray-400 mt-0.5">Basé sur vos lectures et préférences du quiz</p>
+              <h2 className="text-xl font-bold text-gray-800">{dict.home.recommended_title}</h2>
+              <p className="text-sm text-gray-400 mt-0.5">{dict.home.recommended_subtitle}</p>
             </div>
             <BookCarousel books={recommendedBooks} basePath="/books" />
           </section>
@@ -160,18 +164,18 @@ export default async function BooksPage({ searchParams }: {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h2 className="text-xl font-bold text-gray-800">
-                {showPersonalizedCatalog ? "📚 Livres pour vous" : dict.home.all_books_title}
+                {showPersonalizedCatalog ? dict.home.personalized_books_title : dict.home.all_books_title}
               </h2>
               <p className="text-sm text-gray-400 mt-0.5">
                 {recherche
                   ? dict.home.results_for.replace("{count}", filteredBooks.length.toString()).replace("{query}", recherche)
                   : showPersonalizedCatalog
-                    ? `${filteredBooks.length} livre${filteredBooks.length > 1 ? "s" : ""} correspondant à vos goûts`
+                    ? dict.home.personalized_books_count.replace("{count}", filteredBooks.length.toString())
                     : dict.home.books_available.replace("{count}", total.toString())}
               </p>
               {showPersonalizedCatalog && !hasActiveFilters && (
-                <Link href="/books?show_all=1" className="text-sm text-indigo-600 hover:underline mt-1 inline-block">
-                  Voir tout le catalogue →
+                <Link href={`${currentBasePath}?show_all=1`} className="text-sm text-indigo-600 hover:underline mt-1 inline-block">
+                  {dict.home.view_full_catalog}
                 </Link>
               )}
             </div>
@@ -260,19 +264,21 @@ export default async function BooksPage({ searchParams }: {
             <div className="flex items-center justify-center gap-3 mt-10">
               {page > 1 && (
                 <Link
-                  href={`/books?page=${page - 1}${personalized ? "&personalized=1" : ""}${showAll ? "&show_all=1" : ""}${params.genres ? `&genres=${encodeURIComponent(params.genres)}` : ""}`}
+                  href={`${currentBasePath}?page=${page - 1}${personalized ? "&personalized=1" : ""}${showAll ? "&show_all=1" : ""}${params.genres ? `&genres=${encodeURIComponent(params.genres)}` : ""}`}
                   className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
-                  ← Précédent
+                  {dict.filters.previous}
                 </Link>
               )}
-              <span className="text-sm text-gray-500">Page {page} sur {effectiveTotalPages}</span>
+              <span className="text-sm text-gray-500">
+                {dict.filters.page.replace("{page}", page.toString()).replace("{total}", effectiveTotalPages.toString())}
+              </span>
               {page < effectiveTotalPages && (
                 <Link
-                  href={`/books?page=${page + 1}${personalized ? "&personalized=1" : ""}${showAll ? "&show_all=1" : ""}${params.genres ? `&genres=${encodeURIComponent(params.genres)}` : ""}`}
+                  href={`${currentBasePath}?page=${page + 1}${personalized ? "&personalized=1" : ""}${showAll ? "&show_all=1" : ""}${params.genres ? `&genres=${encodeURIComponent(params.genres)}` : ""}`}
                   className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700"
                 >
-                  Suivant →
+                  {dict.filters.next}
                 </Link>
               )}
             </div>

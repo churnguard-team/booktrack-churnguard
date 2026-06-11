@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import SearchInput from "@/app/admin/books/SearchInput";
 import { useTranslation } from "@/app/i18n/useTranslation";
+import { clearAuth } from "@/lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -24,7 +25,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [homeUrl, setHomeUrl] = useState("/");
-  const [booksBaseUrl, setBooksBaseUrl] = useState("/books");
+  const [booksBaseUrl, setBooksBaseUrl] = useState("/");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [notifs, setNotifs] = useState<Notif[]>([]);
@@ -64,12 +65,14 @@ export default function Navbar() {
           setBooksBaseUrl("/books");
         }
       } catch {
-        setHomeUrl("/books");
+        setHomeUrl("/");
+        setBooksBaseUrl("/");
       }
     } else {
       setIsLoggedIn(false);
       setUserId(null);
       setHomeUrl("/");
+      setBooksBaseUrl("/");
     }
   }, [pathname]);
 
@@ -118,13 +121,16 @@ export default function Navbar() {
   const handleLogout = () => {
     document.cookie =
       "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    clearAuth();
 
     setIsLoggedIn(false);
     setHomeUrl("/");
-    setBooksBaseUrl("/books");
+    setBooksBaseUrl("/");
     setIsOpen(false);
+    setNotifOpen(false);
+    setNotifs([]);
 
-    router.push("/login");
+    router.replace("/login");
   };
 
   const toggleDropdown = (menuName: string) => {
@@ -480,12 +486,12 @@ export default function Navbar() {
             onClick={() => setMobileCategoriesOpen((open) => !open)}
             className="app-mobile-categories-button"
           >
-            Catégories {mobileCategoriesOpen ? "▲" : "▼"}
+            {t("navbar.categories")} {mobileCategoriesOpen ? "▲" : "▼"}
           </button>
 
           {mobileCategoriesOpen && (
             <div className="app-mobile-categories-panel">
-              <Link href={booksBaseUrl} onClick={() => setMobileCategoriesOpen(false)}>Récemment ajoutés</Link>
+              <Link href={booksBaseUrl} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.recently_added")}</Link>
               <Link href={`${booksBaseUrl}?genre=science-fiction`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.science_fiction")}</Link>
               <Link href={`${booksBaseUrl}?genre=fantasy`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.fantasy")}</Link>
               <Link href={`${booksBaseUrl}?genre=policier`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.mystery")}</Link>
@@ -542,16 +548,16 @@ export default function Navbar() {
                 zIndex: 50
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
-                  <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#111" }}>Notifications</span>
+                  <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#111" }}>{t("navbar.notifications")}</span>
                   {notifs.length > 0 && (
                     <button onClick={markAllRead} style={{ fontSize: "0.75rem", color: "#6366f1", background: "none", border: "none", cursor: "pointer", fontWeight: "600" }}>
-                      Tout marquer lu
+                      {t("navbar.mark_all_read")}
                     </button>
                   )}
                 </div>
                 {notifs.length === 0 ? (
                   <div style={{ padding: "24px", textAlign: "center", color: "#9ca3af", fontSize: "0.875rem" }}>
-                    Aucune nouvelle notification
+                    {t("navbar.no_notifications")}
                   </div>
                 ) : (
                   notifs.map((n) => (
@@ -574,7 +580,7 @@ export default function Navbar() {
                             {new Date(n.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                           </span>
                           <button onClick={() => markRead(n.id)} style={{ fontSize: "0.7rem", color: "#6366f1", background: "none", border: "none", cursor: "pointer" }}>
-                            Marquer lu
+                            {t("navbar.mark_read")}
                           </button>
                         </div>
                       </div>
@@ -659,7 +665,7 @@ export default function Navbar() {
                       borderBottom: "1px solid #eee",
                     }}
                   >
-                    Statistiques
+                    {t("navbar.statistics")}
                   </Link>
                 )}
 
@@ -689,7 +695,7 @@ export default function Navbar() {
                         fontWeight: "bold",
                       }}
                     >
-                      ⭐ Premium
+                      ⭐ {t("navbar.premium")}
                     </Link>
                   </>
                 )}

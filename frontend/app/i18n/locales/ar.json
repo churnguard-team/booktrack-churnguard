@@ -18,10 +18,24 @@
     "signin": "تسجيل الدخول",
     "view_profile": "عرض الملف الشخصي",
     "my_favourites": "❤️ مفضلاتي",
+    "premium": "بريميوم",
+    "statistics": "الإحصائيات",
+    "categories": "الفئات",
+    "notifications": "الإشعارات",
+    "mark_all_read": "تحديد الكل كمقروء",
+    "no_notifications": "لا توجد إشعارات جديدة",
+    "mark_read": "تحديد كمقروء",
     "language": "اللغة",
     "logout": "تسجيل الخروج"
   },
   "home": {
+    "recommended_title": "✨ مقترحة لك",
+    "recommended_subtitle": "بناء على قراءاتك وتفضيلات الاختبار",
+    "welcome_title": "مرحبا بك في BookTrack!",
+    "welcome_subtitle": "إليك مجموعة مختارة بناء على الأنواع المفضلة لديك{genres}.",
+    "personalized_books_title": "📚 كتب مناسبة لك",
+    "personalized_books_count": "{count} كتاب يوافق ذوقك",
+    "view_full_catalog": "عرض الكتالوج الكامل →",
     "trending_title": "🔥 شائع هذا الأسبوع",
     "trending_subtitle": "الكتب الأكثر شعبية",
     "all_books_title": "📚 كل الكتب",
@@ -30,5 +44,27 @@
     "in_library": "✓ في مكتبتي",
     "no_books_found": "لم يتم العثور على كتب",
     "try_another_term": "جرب مصطلح بحث آخر"
+  },
+  "search": {
+    "placeholder": "ابحث في القاعدة والويب..."
+  },
+  "filters": {
+    "search_book": "ابحث عن كتاب...",
+    "all_types": "كل الأنواع",
+    "all_genres": "كل التصنيفات",
+    "author": "المؤلف...",
+    "year": "السنة",
+    "submit": "تصفية",
+    "previous": "← السابق",
+    "next": "التالي →",
+    "page": "الصفحة {page} من {total}"
+  },
+  "carousel": {
+    "previous": "السابق",
+    "next": "التالي",
+    "reason_genre_preference": "🎯 نوعك المفضل",
+    "reason_recently_viewed": "👁️ شوهد مؤخرا",
+    "reason_based_on_comments": "💬 مراجعاتك",
+    "reason_popular": "🔥 شائع"
   }
 }

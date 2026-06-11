@@ -69,6 +69,7 @@ export default function AddBookForm() {
   const [form, setForm] = useState<BookFormState>(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const genreOptions = GENRES_BY_TYPE[form.type] ?? [];
 
@@ -86,6 +87,7 @@ export default function AddBookForm() {
     }
 
     setError(null);
+    setSuccess(null);
     setIsSubmitting(true);
 
     try {
@@ -110,12 +112,15 @@ export default function AddBookForm() {
       });
 
       if (!res.ok) {
-        throw new Error("Echec de la creation du livre");
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.detail || "Probleme lors de l'ajout du livre.");
       }
 
       setForm(initialFormState);
-      router.push("/admin/books");
-      router.refresh();
+      setSuccess("Livre ajoute avec succes. Redirection vers la liste...");
+      setTimeout(() => {
+        router.push("/admin/books?created=1");
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
@@ -134,41 +139,44 @@ export default function AddBookForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      style={{
-        marginBottom: "2rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "0.65rem",
-        maxWidth: "520px",
-        width: "100%",
-      }}
+      className="flex w-full max-w-xl flex-col gap-4"
     >
-      <h2>Ajouter un livre</h2>
+      <h2 className="text-xl font-bold text-gray-900">Ajouter un livre</h2>
+      {success && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          {success}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {error}
+        </div>
+      )}
       <input
         type="text"
         placeholder="Titre"
         value={form.title}
         onChange={(e) => handleChange("title", e.target.value)}
-        style={{ padding: "0.5rem" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
         required
       />
       <textarea
         placeholder="Description"
         value={form.description}
         onChange={(e) => handleChange("description", e.target.value)}
-        style={{ padding: "0.5rem", minHeight: "90px", resize: "vertical" }}
+        className="min-h-28 w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
       <input
         type="text"
         placeholder="Auteur"
         value={form.auteur}
         onChange={(e) => handleChange("auteur", e.target.value)}
-        style={{ padding: "0.5rem" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
       <select
         value={form.type}
         onChange={(e) => handleChange("type", e.target.value)}
-        style={{ padding: "0.5rem", backgroundColor: "#fff", border: "1px solid #777", borderRadius: "4px" }}
+        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
         required
       >
         <option value="" disabled>Selectionner un type *</option>
@@ -179,7 +187,7 @@ export default function AddBookForm() {
       <select
         value={form.genre}
         onChange={(e) => handleChange("genre", e.target.value)}
-        style={{ padding: "0.5rem", backgroundColor: "#fff", border: "1px solid #777", borderRadius: "4px" }}
+        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 disabled:bg-gray-50 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
         disabled={!form.type || genreOptions.length === 0}
         required={genreOptions.length > 0}
       >
@@ -193,7 +201,7 @@ export default function AddBookForm() {
         placeholder="URL de couverture"
         value={form.cover_url}
         onChange={(e) => handleChange("cover_url", e.target.value)}
-        style={{ padding: "0.5rem" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
       <input
         type="number"
@@ -201,37 +209,28 @@ export default function AddBookForm() {
         placeholder="Nombre de pages"
         value={form.nb_pages}
         onChange={(e) => handleChange("nb_pages", e.target.value)}
-        style={{ padding: "0.5rem" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
       <input
         type="date"
         value={form.date_publication}
         onChange={(e) => handleChange("date_publication", e.target.value)}
-        style={{ padding: "0.5rem" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
       <input
         type="text"
         placeholder="Langue (ex: fr, en)"
         value={form.langue}
         onChange={(e) => handleChange("langue", e.target.value)}
-        style={{ padding: "0.5rem" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
       <button
         type="submit"
-        disabled={isSubmitting}
-        style={{
-          padding: "0.65rem 0.9rem",
-          border: "1px solid #0f172a",
-          borderRadius: "8px",
-          backgroundColor: isSubmitting ? "#94a3b8" : "#0f172a",
-          color: "#fff",
-          fontWeight: 600,
-          cursor: isSubmitting ? "not-allowed" : "pointer",
-        }}
+        disabled={isSubmitting || !!success}
+        className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
         {isSubmitting ? "Ajout en cours..." : "Ajouter"}
       </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </form>
   );
 }

@@ -18,10 +18,24 @@
     "signin": "Sign In",
     "view_profile": "View Profile",
     "my_favourites": "❤️ My Favourites",
+    "premium": "Premium",
+    "statistics": "Statistics",
+    "categories": "Categories",
+    "notifications": "Notifications",
+    "mark_all_read": "Mark all as read",
+    "no_notifications": "No new notifications",
+    "mark_read": "Mark as read",
     "language": "LANGUAGE",
     "logout": "Logout"
   },
   "home": {
+    "recommended_title": "✨ Recommended for you",
+    "recommended_subtitle": "Based on your readings and quiz preferences",
+    "welcome_title": "Welcome to BookTrack!",
+    "welcome_subtitle": "Here is a selection based on your favorite genres{genres}.",
+    "personalized_books_title": "📚 Books for you",
+    "personalized_books_count": "{count} book(s) matching your taste",
+    "view_full_catalog": "View full catalog →",
     "trending_title": "🔥 Trending this week",
     "trending_subtitle": "Most popular books",
     "all_books_title": "📚 All books",
@@ -30,5 +44,27 @@
     "in_library": "✓ In library",
     "no_books_found": "No books found",
     "try_another_term": "Try another search term"
+  },
+  "search": {
+    "placeholder": "Search database + web..."
+  },
+  "filters": {
+    "search_book": "Search for a book...",
+    "all_types": "All types",
+    "all_genres": "All genres",
+    "author": "Author...",
+    "year": "Year",
+    "submit": "Filter",
+    "previous": "← Previous",
+    "next": "Next →",
+    "page": "Page {page} of {total}"
+  },
+  "carousel": {
+    "previous": "Previous",
+    "next": "Next",
+    "reason_genre_preference": "🎯 Your genre",
+    "reason_recently_viewed": "👁️ Recently viewed",
+    "reason_based_on_comments": "💬 Your reviews",
+    "reason_popular": "🔥 Popular"
   }
 }

@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type BookItem } from "./page";
+import { getGenreLabels } from "./genreUtils";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 type Props = {
   books: BookItem[];
@@ -11,6 +13,7 @@ type Props = {
 export default function FilterBar({ books }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [selectedType, setSelectedType] = useState(searchParams.get("type") || "");
@@ -46,11 +49,8 @@ export default function FilterBar({ books }: Props) {
       if (type) {
         filteredBooks = books.filter((book) => book.type === type);
       }
-      const allGenres = filteredBooks.flatMap((book) => book.genres || []);
-      const uniqueGenres = allGenres.filter((genre, index, self) =>
-        index === self.findIndex((g) => g.name === genre.name)
-      );
-      return uniqueGenres.map((genre) => genre.name);
+      const allGenres = filteredBooks.flatMap((book) => getGenreLabels(book));
+      return Array.from(new Set(allGenres)).sort((a, b) => a.localeCompare(b));
     };
 
     setGenres(getGenresForType(selectedType));
@@ -84,7 +84,7 @@ export default function FilterBar({ books }: Props) {
     <div className="flex flex-col md:flex-row gap-4 mb-6">
       <input
         type="text"
-        placeholder="Rechercher un livre..."
+        placeholder={t("filters.search_book")}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -95,7 +95,7 @@ export default function FilterBar({ books }: Props) {
         onChange={(e) => setSelectedType(e.target.value)}
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
       >
-        <option value="">Tous les types</option>
+        <option value="">{t("filters.all_types")}</option>
         {types.map((type) => (
           <option key={type} value={type}>{type}</option>
         ))}
@@ -107,7 +107,7 @@ export default function FilterBar({ books }: Props) {
         disabled={!selectedType}
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 disabled:opacity-50"
       >
-        <option value="">Tous les genres</option>
+        <option value="">{t("filters.all_genres")}</option>
         {genres.map((genre) => (
           <option key={genre} value={genre}>{genre}</option>
         ))}
@@ -116,7 +116,7 @@ export default function FilterBar({ books }: Props) {
       <div className="relative flex-grow min-w-[200px]">
         <input
           type="text"
-          placeholder="Auteur..."
+          placeholder={t("filters.author")}
           value={authorSearch}
           onChange={(e) => setAuthorSearch(e.target.value)}
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -142,7 +142,7 @@ export default function FilterBar({ books }: Props) {
 
       <input
         type="number"
-        placeholder="Annee"
+        placeholder={t("filters.year")}
         value={publicationYear}
         onChange={(e) => setPublicationYear(e.target.value)}
         min="1000"
@@ -154,7 +154,7 @@ export default function FilterBar({ books }: Props) {
         onClick={applyFilters}
         className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg"
       >
-        Filtrer
+        {t("filters.submit")}
       </button>
     </div>
   );

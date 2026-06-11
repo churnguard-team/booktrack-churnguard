@@ -60,7 +60,7 @@ export default function LoginPage() {
           router.push("/onboarding");
         } else {
           // Utilisateur existant → page d'accueil avec le carousel
-          router.push("/");
+          router.push("/books");
         }
       }
       // 4. Si le Backend refuse (mot de passe faux ou email inconnu)

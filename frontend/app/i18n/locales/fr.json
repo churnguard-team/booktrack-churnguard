@@ -18,10 +18,24 @@
     "signin": "Sign In",
     "view_profile": "Voir Profil",
     "my_favourites": " Mes Favoris",
+    "premium": "Premium",
+    "statistics": "Statistiques",
+    "categories": "Catégories",
+    "notifications": "Notifications",
+    "mark_all_read": "Tout marquer lu",
+    "no_notifications": "Aucune nouvelle notification",
+    "mark_read": "Marquer lu",
     "language": "LANGUE",
     "logout": "Se déconnecter"
   },
   "home": {
+    "recommended_title": "✨ Recommandés pour vous",
+    "recommended_subtitle": "Basé sur vos lectures et préférences du quiz",
+    "welcome_title": "Bienvenue sur BookTrack !",
+    "welcome_subtitle": "Voici une sélection basée sur vos genres préférés{genres}.",
+    "personalized_books_title": "📚 Livres pour vous",
+    "personalized_books_count": "{count} livre(s) correspondant à vos goûts",
+    "view_full_catalog": "Voir tout le catalogue →",
     "trending_title": " Tendances cette semaine",
     "trending_subtitle": "Les livres les plus populaires",
     "all_books_title": " Tous les livres",
@@ -30,5 +44,27 @@
     "in_library": "✓ Ma biblio",
     "no_books_found": "Aucun livre trouvé",
     "try_another_term": "Essayez un autre terme de recherche"
+  },
+  "search": {
+    "placeholder": "Rechercher (base + web)..."
+  },
+  "filters": {
+    "search_book": "Rechercher un livre...",
+    "all_types": "Tous les types",
+    "all_genres": "Tous les genres",
+    "author": "Auteur...",
+    "year": "Année",
+    "submit": "Filtrer",
+    "previous": "← Précédent",
+    "next": "Suivant →",
+    "page": "Page {page} sur {total}"
+  },
+  "carousel": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "reason_genre_preference": "🎯 Votre genre",
+    "reason_recently_viewed": "👁️ Consulté récemment",
+    "reason_based_on_comments": "💬 Vos avis",
+    "reason_popular": "🔥 Populaire"
   }
 }

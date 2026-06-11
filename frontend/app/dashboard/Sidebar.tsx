@@ -42,8 +42,9 @@ export default function Sidebar({ role, nom, prenom }: { role: string; nom: stri
   const items = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.USER;
 
   function logout() {
+    document.cookie = "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     clearAuth();
-    router.push("/login");
+    router.replace("/login");
   }
 
   return (

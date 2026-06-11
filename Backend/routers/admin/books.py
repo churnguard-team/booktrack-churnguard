@@ -76,8 +76,15 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[BookResponse])
-def get_books(skip: int = 0, limit: int = 25, db: Session = Depends(get_db)):
-    return db.query(Book).options(joinedload(Book.genres)).offset(skip).limit(limit).all()
+def get_books(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
+    return (
+        db.query(Book)
+        .options(joinedload(Book.genres))
+        .order_by(Book.created_at.desc(), Book.title.asc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.get("/trending", response_model=List[BookResponse])

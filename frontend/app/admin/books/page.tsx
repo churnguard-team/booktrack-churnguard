@@ -19,15 +19,21 @@ type BookItem = {
 
 async function getBooks(): Promise<BookItem[]> {
   const apiUrl = process.env.API_URL || "http://localhost:8000";
-  const res = await fetch(`${apiUrl}/books`, { cache: "no-store" });
+  const res = await fetch(`${apiUrl}/books/?skip=0&limit=500`, { cache: "no-store" });
   if (!res.ok) throw new Error("Erreur lors de la récupération des livres");
   return res.json();
 }
 
-export default async function AdminBooksPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function AdminBooksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; created?: string; error?: string }>;
+}) {
 
   const params = await searchParams;
   const recherche = params.q?.toLowerCase() || "";
+  const bookCreated = params.created === "1";
+  const bookError = params.error;
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
   // ===== APPELS EN PARALLÈLE =====
@@ -57,6 +63,18 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
           </h1>
           <p className="text-gray-500 mt-1">Administrez le catalogue de votre bibliothèque</p>
         </section>
+
+        {bookCreated && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            Livre ajoute avec succes. Il apparait maintenant en premier dans la liste.
+          </div>
+        )}
+
+        {bookError && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            Probleme lors de l'ajout du livre : {bookError}
+          </div>
+        )}
 
         {/* ===== BOUTONS D'ACTION ADMIN ===== */}
         <div className="flex flex-wrap gap-3 mb-8">

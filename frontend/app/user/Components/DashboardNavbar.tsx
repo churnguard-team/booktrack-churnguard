@@ -1,6 +1,7 @@
 'use client'
 import { useRouter} from 'next/navigation'
 import Link from "next/link"
+import { clearAuth } from "@/lib/auth";
 
 
 export default function DashboardNavBar(){
@@ -8,7 +9,8 @@ export default function DashboardNavBar(){
 
     function handleLogOut(){
         document.cookie= "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        router.push("/login");
+        clearAuth();
+        router.replace("/login");
 
 
 
