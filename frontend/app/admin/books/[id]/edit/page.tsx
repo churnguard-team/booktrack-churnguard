@@ -13,6 +13,7 @@ type BookDetail = {
   id: string;
   title: string;
   auteur?: string;
+  type?: string;
   genre?: string;
   description?: string;
   cover_url?: string;
@@ -53,6 +54,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ id: s
     title: book.title ?? "",
     description: book.description ?? "",
     auteur: book.auteur ?? "",
+    type: book.type ?? "",
     genre: book.genre ?? "",
     cover_url: book.cover_url ?? "",
     nb_pages: book.nb_pages?.toString() ?? "",

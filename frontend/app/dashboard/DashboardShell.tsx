@@ -41,9 +41,9 @@ export default function DashboardShell({
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
+    <div className="dashboard-shell" style={{ display: "flex", minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
       <Sidebar role={user?.role ?? "USER"} nom={user?.nom ?? ""} prenom={user?.prenom ?? ""} />
-      <main style={{ flex: 1, padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <main className="dashboard-main" style={{ flex: 1, padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         {children}
       </main>
     </div>

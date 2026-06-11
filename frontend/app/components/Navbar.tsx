@@ -29,12 +29,21 @@ export default function Navbar() {
   const [userId, setUserId] = useState<string | null>(null);
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isMobileNav, setIsMobileNav] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { t, locale } = useTranslation();
 
   const showSearch = SEARCH_PAGES.includes(pathname);
+
+  useEffect(() => {
+    const syncMobileNav = () => setIsMobileNav(window.innerWidth <= 700);
+    syncMobileNav();
+    window.addEventListener("resize", syncMobileNav);
+    return () => window.removeEventListener("resize", syncMobileNav);
+  }, []);
 
   useEffect(() => {
     const sessionCookie = document.cookie
@@ -124,6 +133,7 @@ export default function Navbar() {
 
   return (
     <nav
+      className="app-navbar"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -134,10 +144,13 @@ export default function Navbar() {
         gap: "1rem",
         flexWrap: "wrap",
         color: "#333",
+        width: "100%",
+        maxWidth: "100vw",
       }}
     >
       {/* LOGO */}
       <Link
+        className="app-navbar-logo"
         href={homeUrl}
         style={{
           fontWeight: "bold",
@@ -151,7 +164,9 @@ export default function Navbar() {
       </Link>
 
       {/* MENU CATÉGORIES */}
-      <div
+      {!isMobileNav && (
+        <div
+        className="app-navbar-menu"
         style={{
           display: "flex",
           gap: "1.5rem",
@@ -185,7 +200,7 @@ export default function Navbar() {
         </Link>
 
         {/* ROMANS */}
-        <div style={{ position: "relative" }}>
+        <div className="app-nav-category" style={{ position: "relative" }}>
           <div
             onClick={() => toggleDropdown("romans")}
             style={{
@@ -202,6 +217,7 @@ export default function Navbar() {
 
           {openDropdown === "romans" && (
             <div
+              className="app-nav-dropdown"
               style={{
                 position: "absolute",
                 top: "30px",
@@ -259,7 +275,7 @@ export default function Navbar() {
         </div>
 
         {/* MANGAS */}
-        <div style={{ position: "relative" }}>
+        <div className="app-nav-category" style={{ position: "relative" }}>
           <div
             onClick={() => toggleDropdown("mangas")}
             style={{
@@ -276,6 +292,7 @@ export default function Navbar() {
 
           {openDropdown === "mangas" && (
             <div
+              className="app-nav-dropdown"
               style={{
                 position: "absolute",
                 top: "30px",
@@ -333,7 +350,7 @@ export default function Navbar() {
         </div>
 
         {/* BD */}
-        <div style={{ position: "relative" }}>
+        <div className="app-nav-category" style={{ position: "relative" }}>
           <div
             onClick={() => toggleDropdown("bd")}
             style={{
@@ -350,6 +367,7 @@ export default function Navbar() {
 
           {openDropdown === "bd" && (
             <div
+              className="app-nav-dropdown"
               style={{
                 position: "absolute",
                 top: "30px",
@@ -393,7 +411,7 @@ export default function Navbar() {
         </div>
 
         {/* ESSAIS */}
-        <div style={{ position: "relative" }}>
+        <div className="app-nav-category" style={{ position: "relative" }}>
           <div
             onClick={() => toggleDropdown("essais")}
             style={{
@@ -410,6 +428,7 @@ export default function Navbar() {
 
           {openDropdown === "essais" && (
             <div
+              className="app-nav-dropdown"
               style={{
                 position: "absolute",
                 top: "30px",
@@ -451,11 +470,40 @@ export default function Navbar() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      )}
+
+      {isMobileNav && (
+        <div className="app-mobile-categories">
+          <button
+            type="button"
+            onClick={() => setMobileCategoriesOpen((open) => !open)}
+            className="app-mobile-categories-button"
+          >
+            Catégories {mobileCategoriesOpen ? "▲" : "▼"}
+          </button>
+
+          {mobileCategoriesOpen && (
+            <div className="app-mobile-categories-panel">
+              <Link href={booksBaseUrl} onClick={() => setMobileCategoriesOpen(false)}>Récemment ajoutés</Link>
+              <Link href={`${booksBaseUrl}?genre=science-fiction`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.science_fiction")}</Link>
+              <Link href={`${booksBaseUrl}?genre=fantasy`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.fantasy")}</Link>
+              <Link href={`${booksBaseUrl}?genre=policier`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.mystery")}</Link>
+              <Link href={`${booksBaseUrl}?genre=shonen`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.shonen")}</Link>
+              <Link href={`${booksBaseUrl}?genre=seinen`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.seinen")}</Link>
+              <Link href={`${booksBaseUrl}?genre=shojo`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.shojo")}</Link>
+              <Link href={`${booksBaseUrl}?genre=comics`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.us_comics")}</Link>
+              <Link href={`${booksBaseUrl}?genre=franco-belge`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.franco_belgian")}</Link>
+              <Link href={`${booksBaseUrl}?genre=histoire`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.history")}</Link>
+              <Link href={`${booksBaseUrl}?genre=philosophie`} onClick={() => setMobileCategoriesOpen(false)}>{t("navbar.philosophy")}</Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* BARRE DE RECHERCHE */}
       {showSearch && (
-        <div style={{ flex: 1, maxWidth: "300px" }}>
+        <div className="app-navbar-search" style={{ flex: 1, maxWidth: "300px", minWidth: 0 }}>
           <Suspense fallback={<div style={{ height: "36px" }} />}>
             <SearchInput />
           </Suspense>
@@ -463,7 +511,7 @@ export default function Navbar() {
       )}
 
       {/* ===== DROITE : Sign In OU Profil ===== */}
-      <div style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div className="app-navbar-actions" style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
 
         {/* CLOCHE NOTIFICATIONS */}
         {isLoggedIn && (
@@ -486,7 +534,7 @@ export default function Navbar() {
             </button>
 
             {notifOpen && (
-              <div style={{
+              <div className="app-notification-panel" style={{
                 position: "absolute", top: "50px", right: 0,
                 width: "340px", maxHeight: "420px", overflowY: "auto",
                 background: "#fff", border: "1px solid #e5e7eb",

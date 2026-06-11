@@ -131,7 +131,7 @@ export default function EditBookForm({ bookId, initialData }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-xl">
+    <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-4">
       {success && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm font-medium">
           Livre modifie avec succes ! Redirection en cours...
@@ -234,7 +234,7 @@ export default function EditBookForm({ bookId, initialData }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Pages</label>
           <input
@@ -270,7 +270,7 @@ export default function EditBookForm({ bookId, initialData }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row">
         <button
           type="submit"
           disabled={isSubmitting || success}

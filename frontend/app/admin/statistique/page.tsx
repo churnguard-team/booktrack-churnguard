@@ -26,28 +26,28 @@ export default async function AdminStatistiquePage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900"> Statistiques</h1>
             <p className="text-gray-500 mt-1">Vue d'ensemble de la plateforme BookTrack</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Link href="/admin/books"
-              className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50">
+              className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 text-center">
               📚 Livres
             </Link>
             <Link href="/admin/users"
-              className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50">
+              className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 text-center">
               👥 Utilisateurs
             </Link>
           </div>
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 gap-4 mb-10">
+        <div className="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-2">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
               Total Livres

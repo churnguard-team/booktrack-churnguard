@@ -12,6 +12,5 @@ numpy
 scikit-learn
 apscheduler
 stripe
-tensorflow
 sendgrid
 matplotlib

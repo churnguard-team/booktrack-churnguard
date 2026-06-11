@@ -200,10 +200,10 @@ export default function OnboardingPage() {
 
   // ===== RENDU =====
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col items-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col items-center px-3 py-6 sm:px-4 sm:py-12">
 
       {/* ===== BARRE DE PROGRESSION ===== */}
-      <div className="w-full max-w-2xl mb-8">
+      <div className="w-full max-w-2xl mb-6 sm:mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-indigo-600">Étape {step} sur 3</span>
           <span className="text-sm text-gray-400">{step === 1 ? "Genres" : step === 2 ? "Livres lus" : "Favoris"}</span>
@@ -218,39 +218,39 @@ export default function OnboardingPage() {
       </div>
 
       {/* ===== CARTE PRINCIPALE ===== */}
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+      <div className="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
 
         {/* Header de la carte */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-6 text-white">
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-5 text-white sm:px-8 sm:py-6">
           {step === 1 && (
             <>
               <p className="text-indigo-200 text-sm font-medium mb-1">Bienvenue, {prenom} ! 👋</p>
-              <h1 className="text-2xl font-bold">Quels genres vous passionnent ?</h1>
+              <h1 className="text-xl font-bold sm:text-2xl">Quels genres vous passionnent ?</h1>
               <p className="text-indigo-200 text-sm mt-1">Choisissez au moins 1 genre pour personnaliser votre expérience</p>
             </>
           )}
           {step === 2 && (
             <>
               <p className="text-indigo-200 text-sm font-medium mb-1">Super choix ! 📚</p>
-              <h1 className="text-2xl font-bold">Quels livres avez-vous déjà lus ?</h1>
+              <h1 className="text-xl font-bold sm:text-2xl">Quels livres avez-vous déjà lus ?</h1>
               <p className="text-indigo-200 text-sm mt-1">Cliquez sur les livres que vous avez terminés ({readBooks.size} sélectionné{readBooks.size > 1 ? "s" : ""})</p>
             </>
           )}
           {step === 3 && (
             <>
               <p className="text-indigo-200 text-sm font-medium mb-1">Presque fini ! ⭐</p>
-              <h1 className="text-2xl font-bold">Vos coups de cœur ?</h1>
+              <h1 className="text-xl font-bold sm:text-2xl">Vos coups de cœur ?</h1>
               <p className="text-indigo-200 text-sm mt-1">Parmi les livres lus, lesquels avez-vous adoré ?</p>
             </>
           )}
         </div>
 
         {/* Contenu de l'étape */}
-        <div className="px-8 py-6">
+        <div className="px-4 py-5 sm:px-8 sm:py-6">
 
           {/* ===== ÉTAPE 1 : GENRES ===== */}
           {step === 1 && (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {GENRES.map(({ label, emoji }) => {
                 const isSelected = selectedGenres.includes(label);
                 return (
@@ -280,7 +280,7 @@ export default function OnboardingPage() {
 
           {/* ===== ÉTAPE 2 : LIVRES LUS ===== */}
           {step === 2 && (
-            <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1 sm:grid-cols-3 sm:gap-4">
               {booksForStep2.map((book) => {
                 const isSelected = readBooks.has(book.id);
                 return (
@@ -329,7 +329,7 @@ export default function OnboardingPage() {
                   <p className="text-sm mt-1">Vous pourrez ajouter des favoris depuis votre bibliothèque</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1 sm:grid-cols-3 sm:gap-4">
                   {readBookItems.map((book) => {
                     const isFav = favouriteBooks.has(book.id);
                     return (
@@ -367,14 +367,14 @@ export default function OnboardingPage() {
         </div>
 
         {/* ===== BOUTONS DE NAVIGATION ===== */}
-        <div className="px-8 pb-8 flex justify-between items-center">
+        <div className="px-4 pb-6 flex flex-col gap-3 sm:px-8 sm:pb-8 sm:flex-row sm:justify-between sm:items-center">
 
           {/* Bouton "Précédent" (invisible à l'étape 1) */}
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="px-5 py-2.5 text-gray-500 text-sm font-medium border border-gray-200
-                         rounded-full hover:bg-gray-50 transition-colors"
+              className="w-full px-5 py-2.5 text-gray-500 text-sm font-medium border border-gray-200
+                         rounded-full hover:bg-gray-50 transition-colors sm:w-auto"
             >
               ← Précédent
             </button>
@@ -387,7 +387,7 @@ export default function OnboardingPage() {
             <button
               onClick={() => setStep((s) => s + 1)}
               disabled={step === 1 && selectedGenres.length === 0}
-              className={`px-6 py-2.5 text-white text-sm font-semibold rounded-full transition-all
+              className={`w-full px-6 py-2.5 text-white text-sm font-semibold rounded-full transition-all sm:w-auto
                 ${step === 1 && selectedGenres.length === 0
                   ? "bg-gray-300 cursor-not-allowed"                        // Désactivé à l'étape 1 si aucun genre
                   : "bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg hover:scale-105"
@@ -399,9 +399,9 @@ export default function OnboardingPage() {
             <button
               onClick={handleFinish}
               disabled={isSaving}
-              className="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white
+              className="w-full px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white
                          text-sm font-semibold rounded-full hover:shadow-lg hover:scale-105
-                         transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                         transition-all disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
             >
               {isSaving ? "Enregistrement..." : "🎉 Terminer et accéder à BookTrack"}
             </button>

@@ -47,7 +47,7 @@ export default function Sidebar({ role, nom, prenom }: { role: string; nom: stri
   }
 
   return (
-    <aside style={{
+    <aside className="dashboard-sidebar" style={{
       width: "240px",
       minHeight: "100vh",
       background: "#eff6ff",

@@ -27,7 +27,7 @@ function KPI({ label, value, sub, color = "bg-white border-gray-100" }: {
 function Bar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-24 shrink-0 text-right text-xs text-gray-500">{label}</span>
+      <span className="w-20 shrink-0 text-right text-xs text-gray-500 sm:w-24">{label}</span>
       <div className="flex-1 rounded-full bg-gray-100 h-3">
         <div className={`h-3 rounded-full ${color}`} style={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }} />
       </div>
@@ -82,7 +82,7 @@ export default function ModeratorDashboard() {
 
   return (
     <DashboardShell allowedRoles={["MODERATOR", "SUPER_ADMIN"]}>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
 
         {/* ── Header ── */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
@@ -90,14 +90,14 @@ export default function ModeratorDashboard() {
             <h1 className="text-2xl font-bold text-gray-900">Dashboard Modérateur</h1>
             <p className="mt-1 text-sm text-gray-500">Utilisateurs · Abonnements · Churn · Lecture · Rétention</p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={load} className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <button onClick={load} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:w-auto">
               ↻ Actualiser
             </button>
             <button
               onClick={runChurn}
               disabled={running}
-              className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 sm:w-auto"
             >
               {running ? "Analyse en cours…" : "🚨 Lancer détection churn & emails"}
             </button>
@@ -149,7 +149,7 @@ export default function ModeratorDashboard() {
             <div className="mb-8 grid gap-6 lg:grid-cols-2">
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
                 <p className="mb-4 text-sm font-semibold text-gray-700">Distribution des niveaux de risque</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const).map(level => (
                     <div key={level} className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold ${RISK_STYLE[level]}`}>
                       <span>{level}</span>
@@ -167,12 +167,12 @@ export default function ModeratorDashboard() {
                 ) : (
                   <div className="space-y-2">
                     {d.at_risk_users.slice(0, 5).map((u: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2">
-                        <div>
+                      <div key={i} className="flex flex-col gap-3 rounded-xl bg-gray-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
                           <p className="text-sm font-semibold text-gray-800">{u.prenom} {u.nom}</p>
-                          <p className="text-xs text-gray-400">{u.email} · {u.abonnement}</p>
+                          <p className="break-all text-xs text-gray-400">{u.email} · {u.abonnement}</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className={`rounded-lg border px-2 py-1 text-xs font-bold ${RISK_STYLE[u.niveau_risque]}`}>
                             {Math.round(u.score * 100)}% — {u.niveau_risque}
                           </span>

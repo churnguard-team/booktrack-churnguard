@@ -38,7 +38,7 @@ export default function DeleteUserButton({ userId }: Props) {
       onClick={handleDelete}
       disabled={isPending || isDeleting || !userId}
       style={{
-        marginTop: "0.75rem",
+        width: "100%",
         padding: "0.45rem 0.7rem",
         border: "1px solid #d33",
         borderRadius: "6px",

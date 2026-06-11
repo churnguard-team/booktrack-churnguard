@@ -28,81 +28,50 @@ export default async function UsersPage() {
   const users = await getUsers();
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+    <main className="min-h-screen bg-gray-50 text-gray-900">
       <Navbar />
-      <h1>Gestion des utilisateurs</h1>
-      <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.75rem", marginBottom: "1rem" }}>
-        <Link
-          href="/admin/books"
-          style={{
-            display: "inline-block",
-            padding: "0.55rem 0.9rem",
-            border: "1px solid #333",
-            borderRadius: "6px",
-            textDecoration: "none",
-            color: "#111",
-          }}
-        >
-          Retour aux livres
-        </Link>
-        <Link
-          href="/admin/users/add"
-          style={{
-            display: "inline-block",
-            padding: "0.55rem 0.9rem",
-            border: "1px solid #333",
-            borderRadius: "6px",
-            textDecoration: "none",
-            color: "#111",
-          }}
-        >
-          Ajouter utilisateur
-        </Link>
-      </div>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestion des utilisateurs</h1>
+            <p className="mt-1 text-sm text-gray-500">Administrez les comptes et leur statut.</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/admin/books"
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Retour aux livres
+            </Link>
+            <Link
+              href="/admin/users/add"
+              className="rounded-lg bg-gray-900 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-gray-700"
+            >
+              Ajouter utilisateur
+            </Link>
+          </div>
+        </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-          gap: "1rem",
-          marginTop: "1rem",
-        }}
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {users.map((user) => (
           <div
             key={user.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "1rem",
-              backgroundColor: "#fff",
-              color: "#111",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            }}
+            className="rounded-xl border border-gray-100 bg-white p-4 text-gray-900 shadow-sm"
           >
-            <h3 style={{ margin: "0 0 0.5rem" }}>
+            <h3 className="mb-2 font-semibold text-gray-900">
               {user.prenom} {user.nom}
             </h3>
-            <p style={{ color: "#666", margin: "0 0 0.25rem" }}>{user.email}</p>
-            <p style={{ color: user.is_active ? "#0f766e" : "#b91c1c", margin: 0 }}>
+            <p className="mb-1 break-all text-sm text-gray-500">{user.email}</p>
+            <p className={user.is_active ? "text-sm font-medium text-teal-700" : "text-sm font-medium text-red-700"}>
               {user.is_active ? "Actif" : "Inactif"}
             </p>
 
             {/* Boutons Modifier + Supprimer sur la même ligne */}
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               {/* Modifier → redirige vers la page d'édition */}
               <Link
                 href={`/admin/users/${user.id}/edit`}
-                style={{
-                  flex: 1, textAlign: "center",
-                  padding: "0.45rem 0.75rem",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "8px",
-                  color: "#374151",
-                  textDecoration: "none",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
-                }}
+                className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 ✏️ Modifier
               </Link>
@@ -114,6 +83,7 @@ export default async function UsersPage() {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </main>
   );

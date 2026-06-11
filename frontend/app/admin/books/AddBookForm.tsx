@@ -140,6 +140,7 @@ export default function AddBookForm() {
         flexDirection: "column",
         gap: "0.65rem",
         maxWidth: "520px",
+        width: "100%",
       }}
     >
       <h2>Ajouter un livre</h2>
