@@ -45,6 +45,7 @@ export default function Navbar() {
       try {
         const cookieValue = decodeURIComponent(sessionCookie.split("=")[1]);
         const user = JSON.parse(cookieValue);
+        setIsLoggedIn(true);
         setUserId(user.id ?? null);
         if (user.role === "admin") {
           setHomeUrl("/admin/books");

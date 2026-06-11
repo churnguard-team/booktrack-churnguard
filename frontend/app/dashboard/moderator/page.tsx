@@ -42,6 +42,7 @@ export default function ModeratorDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [runMsg, setRunMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -171,9 +172,34 @@ export default function ModeratorDashboard() {
                           <p className="text-sm font-semibold text-gray-800">{u.prenom} {u.nom}</p>
                           <p className="text-xs text-gray-400">{u.email} · {u.abonnement}</p>
                         </div>
-                        <span className={`rounded-lg border px-2 py-1 text-xs font-bold ${RISK_STYLE[u.niveau_risque]}`}>
-                          {Math.round(u.score * 100)}% — {u.niveau_risque}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded-lg border px-2 py-1 text-xs font-bold ${RISK_STYLE[u.niveau_risque]}`}>
+                            {Math.round(u.score * 100)}% — {u.niveau_risque}
+                          </span>
+                          <button
+                            disabled={sendingEmail === u.user_id}
+                            onClick={async () => {
+                              setSendingEmail(u.user_id);
+                              setRunMsg(null);
+                              try {
+                                const res = await fetch(`${API}/api/retention/send-email`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ user_id: u.user_id, discount_percent: 30 }),
+                                });
+                                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                                setRunMsg({ ok: true, text: `Email envoyé à ${u.prenom} ${u.nom} (${u.email})` });
+                              } catch (e: any) {
+                                setRunMsg({ ok: false, text: "Erreur envoi email : " + e.message });
+                              } finally {
+                                setSendingEmail(null);
+                              }
+                            }}
+                            className="rounded-lg bg-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {sendingEmail === u.user_id ? "…" : "✉ Email"}
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
