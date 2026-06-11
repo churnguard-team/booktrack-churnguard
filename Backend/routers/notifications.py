@@ -79,29 +79,20 @@ def generate_recommendation_notifications(
     return {"status": "ok", "notifications_created": created}
 
 
+@router.get("/user/{user_id}")
+def get_notifications(
     user_id: str,
     unread_only: bool = False,
     limit: int = 20,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Récupère les notifications d'un utilisateur.
-    
-    Args:
-        user_id: UUID de l'utilisateur
-        unread_only: Si True, seulement les non-lues
-        limit: Nombre max (défaut 20)
-        
-    Returns:
-        Liste des notifications avec statut
-    """
+    """Récupère les notifications d'un utilisateur."""
     notifications = get_user_notifications(
         db,
         user_id,
         unread_only=unread_only,
         limit=limit,
     )
-    
     return {
         "status": "success",
         "count": len(notifications),

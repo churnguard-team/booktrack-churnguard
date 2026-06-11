@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import SearchInput from "@/app/admin/books/SearchInput";
+import { useTranslation } from "@/app/i18n/useTranslation";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -14,31 +17,22 @@ interface Notif {
   created_at: string;
   metadata: Record<string, any>;
 }
-import { useRouter, usePathname } from "next/navigation";
-import SearchInput from "@/app/admin/books/SearchInput";
-import { useTranslation } from "@/app/i18n/useTranslation";
 
-// Pages sur lesquelles la barre de recherche doit apparaître dans la navbar
 const SEARCH_PAGES = ["/", "/books", "/admin/books"];
 
 export default function Navbar() {
-  const [isOpen, setIsOpen]       = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [homeUrl, setHomeUrl]       = useState("/");
+  const [homeUrl, setHomeUrl] = useState("/");
+  const [booksBaseUrl, setBooksBaseUrl] = useState("/books");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
   const { t, locale } = useTranslation();
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [homeUrl, setHomeUrl] = useState("/");
-  const [booksBaseUrl, setBooksBaseUrl] = useState("/books");
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const showSearch = SEARCH_PAGES.includes(pathname);
 

@@ -41,18 +41,19 @@ def run_daily_churn_scoring(db: Session, send_emails: bool = True) -> Dict[str, 
             score = result["churn_probability"]
             niveau = _risk_level_pg(score)
 
+            import json as _json
             db.execute(
                 text("""
                     INSERT INTO churn_scores
                         (user_id, score, niveau_risque, model_version, features_snapshot, is_latest)
                     VALUES
-                        (:uid, :score, :niveau, 'xgboost-v1', :snap::jsonb, true)
+                        (:uid, :score, :niveau, 'xgboost-v1', CAST(:snap AS jsonb), true)
                 """),
                 {
                     "uid": user_id_str,
                     "score": score,
                     "niveau": niveau,
-                    "snap": str(features).replace("'", '"'),
+                    "snap": _json.dumps(features),
                 },
             )
             scored += 1
@@ -61,7 +62,8 @@ def run_daily_churn_scoring(db: Session, send_emails: bool = True) -> Dict[str, 
             if score > 0.6 and send_emails:
                 high_risk_users.append((user_id_str, score))
                 
-        except Exception:
+        except Exception as e:
+            print(f"[churn] error scoring user {user_id_str}: {type(e).__name__}: {e}")
             errors += 1
 
     db.commit()

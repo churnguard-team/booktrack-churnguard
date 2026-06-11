@@ -50,32 +50,21 @@ export default async function BooksPage({ searchParams }: {
 
   const apiUrl = process.env.API_URL || "http://localhost:8000";
 
-<<<<<<< HEAD
   const safe = (p: Promise<Response>) => p.catch(() => new Response("null"));
 
-  const [allBooksRes, libraryRes, trendingRes, recoRes, totalRes] = await Promise.all([
-    safe(fetch(`${apiUrl}/books?skip=${skip}&limit=${PAGE_SIZE}`, { cache: "no-store" })),
-=======
   const [allBooksRes, libraryRes, trendingRes, recoRes, totalRes, profileRes] = await Promise.all([
-    fetch(`${apiUrl}/books?skip=${fetchSkip}&limit=${fetchLimit}`, { cache: "no-store" }),
->>>>>>> 67287a9c2f625774641d0028e09ca392a59ced18
+    safe(fetch(`${apiUrl}/books?skip=${fetchSkip}&limit=${fetchLimit}`, { cache: "no-store" })),
     user
       ? safe(fetch(`${apiUrl}/users/${user.user_id}/library/`, { cache: "no-store" }))
       : Promise.resolve(new Response("[]")),
     safe(fetch(`${apiUrl}/books/trending`, { cache: "no-store" })),
     user
-<<<<<<< HEAD
-      ? safe(fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=10`, { cache: "no-store" }))
+      ? safe(fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=12`, { cache: "no-store" }))
       : Promise.resolve(new Response(JSON.stringify({ recommendations: [] }))),
     safe(fetch(`${apiUrl}/books/count`, { cache: "no-store" })),
-=======
-      ? fetch(`${apiUrl}/api/recommendations/user/${user.user_id}?n=12`, { cache: "no-store" })
-      : Promise.resolve(new Response(JSON.stringify({ recommendations: [] }))),
-    fetch(`${apiUrl}/books/count`, { cache: "no-store" }),
     user
-      ? fetch(`${apiUrl}/users/${user.user_id}/profile`, { cache: "no-store" })
+      ? safe(fetch(`${apiUrl}/users/${user.user_id}/profile`, { cache: "no-store" }))
       : Promise.resolve(new Response(JSON.stringify({ genres_preferes: [] }))),
->>>>>>> 67287a9c2f625774641d0028e09ca392a59ced18
   ]);
 
   const allBooks: BookItem[] = allBooksRes.ok ? (await allBooksRes.json().catch(() => null)) ?? [] : [];

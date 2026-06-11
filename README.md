@@ -145,7 +145,6 @@ Configurer l'authentification Google :
   6) Dans le dossier frontend, créez un fichier nommé .env.local.
   7) Ajoutez-y les variables suivantes en utilisant les clés obtenues à l'étape précédente :
 
-
   # Fichier: frontend/.env.local
 
 # Clés obtenues depuis la Google Cloud Console
@@ -461,3 +460,28 @@ VALUES
 ('Coraline', 'Neil Gaiman', 'Fantastique',
  'Une fillette découvre un monde parallèle qui ressemble au sien mais en plus inquiétant.',
  '9782070628063', 'https://covers.openlibrary.org/b/isbn/9782070628063-L.jpg', 192, '2002-07-02', 'fr');
+
+
+----------------------------------------
+RESULTATS -- DEEP LEARNING
+----------------------------------------
+accuracy  : 79.13%
+precision : 62.42%
+recall    : 53.74%
+f1        : 57.76%
+roc_auc   : 83.53%
+----------------------------------------
+              precision    recall  f1-score   support
+
+       Actif       0.84      0.88      0.86      1035
+       Churn       0.62      0.54      0.58       374
+
+    accuracy                           0.79      1409
+weighted avg       0.78      0.79      0.79      1409
+
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+
+Modele sauvegarde dans : saved_models\deep_learning
+=======================================================
+ROC-AUC final : 83.53%
+=======================================================

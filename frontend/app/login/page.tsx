@@ -40,7 +40,7 @@ export default function LoginPage() {
 
     try {
       // 1. On interroge notre nouvelle route Backend (port 8000)
-      const response = await fetch("http://localhost:8000/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // On envoie un JSON avec tes identifiants (qui correspond au LoginRequest)

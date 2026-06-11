@@ -11,7 +11,8 @@ from typing import Dict, List
 import numpy as np
 
 # Allow saved models either in backend/ml_models/saved_models or at the repository root saved_models.
-BACKEND_MODEL_DIR = Path(__file__).resolve().parent.parent / "saved_models"
+# backend/ml_models/inference/__init__.py → go up 3 levels to reach backend/
+BACKEND_MODEL_DIR = Path(__file__).resolve().parents[2] / "saved_models"
 REPO_ROOT_MODEL_DIR = Path(__file__).resolve().parents[3] / "saved_models"
 
 MODEL_DIR = BACKEND_MODEL_DIR if BACKEND_MODEL_DIR.exists() and any(BACKEND_MODEL_DIR.iterdir()) else REPO_ROOT_MODEL_DIR
